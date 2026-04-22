@@ -20,8 +20,8 @@ def send_dual_notifications(msg):
         payload = {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}
         try:
             requests.post(f_url, data=payload)
-        except Exception as e:
-            st.error(f"Telegram Error: {e}")
+        except:
+            pass
 
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
@@ -41,21 +41,22 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("🛍️ Patel Bhavan Mart")
-st.caption("Auto-Stock Update & Dual Alerts 🚀")
+st.caption("Live Inventory Sync Enabled 🚀")
 st.divider()
 
 if st.session_state.order_success:
     st.balloons()
-    st.success("### 🎉 ORDER BOOKED! Stock & Telegram Updated.")
-    time.sleep(3)
+    st.success("### 🎉 ORDER PLACED! Stock Updated successfully.")
+    time.sleep(2)
     st.session_state.order_success = False
     st.rerun()
 
 col_inv, col_cart = st.columns([2, 1])
 
 with col_inv:
-    st.subheader("📦 Items")
+    st.subheader("📦 Menu")
     try:
+        # Fetching fresh data every time
         res = supabase.table("inventory").select("*").execute()
         data = res.data
         if not data:
@@ -70,6 +71,7 @@ with col_inv:
                     mrp = int(item.get('MRP', 0))
                     price = int(item.get('Price', 0))
                     stock = int(item.get('Stock', 0))
+                    item_id = item.get('id') # Unique ID for update
                     
                     if mrp > price:
                         st.markdown(f"<span class='mrp-text'>MRP: ₹{mrp}</span> <span class='save-tag'>Save ₹{mrp-price}</span>", unsafe_allow_html=True)
@@ -78,10 +80,16 @@ with col_inv:
                     if stock <= 0:
                         st.error("Out of Stock! ❌")
                     else:
-                        st.markdown(f"<span class='stock-low'>Only {stock} left</span>", unsafe_allow_html=True)
+                        st.markdown(f"<span class='stock-low'>Stock available: {stock}</span>", unsafe_allow_html=True)
                         q = st.number_input("Qty", 1, stock, 1, key=f"q_{idx}")
                         if st.button(f"🛒 Add to Basket", key=f"add_{idx}"):
-                            st.session_state.cart[item.get('Name')] = {'price': price, 'qty': q, 'current_stock': stock}
+                            # Storing item ID and stock info in cart
+                            st.session_state.cart[item.get('Name')] = {
+                                'price': price, 
+                                'qty': q, 
+                                'id': item_id, 
+                                'current_stock': stock
+                            }
                             st.toast(f"✅ {item.get('Name')} added!")
                             st.rerun()
     except Exception as e: st.error(f"Error: {e}")
@@ -111,21 +119,23 @@ with col_cart:
         
         if st.button("✅ CONFIRM & BOOK"):
             if r and p:
-                # 1. Pehle Telegram Message bhejo
-                order_msg = f"🚀 *NAYA ORDER AAYA HAI!*\n\n📍 *Room:* {r}\n📞 *Phone:* {p}\n\n*Items:*\n{summary}\n💰 *Total:* ₹{total}"
-                send_dual_notifications(order_msg)
-                
-                # 2. Phir Supabase Update karo
                 try:
+                    # 1. Update Stock in Supabase using ID
                     for name, d in st.session_state.cart.items():
                         new_stock = d['current_stock'] - d['qty']
-                        supabase.table("inventory").update({"Stock": new_stock}).eq("Name", name).execute()
+                        # Updating by ID is 100% accurate
+                        supabase.table("inventory").update({"Stock": new_stock}).eq("id", d['id']).execute()
                     
+                    # 2. Send Telegram
+                    order_msg = f"🚀 *ORDER PLACED!*\n\n📍 *Room:* {r}\n📞 *Phone:* {p}\n\n*Items:*\n{summary}\n💰 *Total:* ₹{total}"
+                    send_dual_notifications(order_msg)
+                    
+                    # 3. Clear Cart and Show Success
                     st.session_state.cart = {}
                     st.session_state.order_success = True
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Stock Update Error: {e}. Message sent to Telegram anyway!")
+                    st.error(f"Stock Update Error: {e}")
             else:
                 st.error("Room aur Phone number bharo!")
     st.markdown("</div>", unsafe_allow_html=True)
