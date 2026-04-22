@@ -16,7 +16,7 @@ def send_notif(msg):
 
 # 2. UI Design
 st.set_page_config(page_title="Patel Bhavan Marg", layout="wide")
-st.title("🛒 Patel Bhavan Marg - Quick Delivery")
+st.title("🛒 Patel Bhavan Mart - Quick Delivery")
 
 # 3. Items Fetch Karna
 # Is line ko mita kar niche wali line likh do
