@@ -25,77 +25,59 @@ if 'cart' not in st.session_state: st.session_state.cart = {}
 
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# --- SIMPLE AESTHETIC CSS (No Glow) ---
+# --- CSS UPDATES (Speed & Blink) ---
 st.markdown("""
     <style>
-    /* Professional Matte Background */
-    .stApp {
-        background-color: #0F1116;
-        color: #E0E0E0;
-    }
+    .stApp { background-color: #0F1116; color: #E0E0E0; }
     
-    /* Soft Blue Marquee */
+    /* Fast Moving Tagline (Speed increased to 10s) */
     .marquee-container {
         width: 100%; overflow: hidden; background: #1E2633;
         padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #3A8DFF;
     }
-    .marquee-content { display: flex; white-space: nowrap; animation: marquee 20s linear infinite; }
+    .marquee-content { display: flex; white-space: nowrap; animation: marquee 10s linear infinite; }
     .marquee-text { font-weight: 500; color: #3A8DFF; font-size: 16px; padding-right: 60px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    /* Clean Cards */
-    div[data-testid="stExpander"], .stContainer {
+    /* Red Blinking Animation for Stock */
+    .urgency-blink {
+        color: #FF4B4B;
+        font-weight: bold;
+        font-size: 13px;
+        animation: blinker 0.8s linear infinite;
+        margin-top: 5px;
+    }
+    @keyframes blinker { 50% { opacity: 0; } }
+
+    .stContainer, div[data-testid="stExpander"] {
         border: 1px solid #2D343F !important;
         background-color: #161B22 !important;
         border-radius: 12px !important;
     }
 
-    /* Floating WhatsApp Button (Matte Green) */
     .whatsapp-btn { 
         position: fixed; bottom: 30px; right: 30px; background-color: #2DB842; 
         color: white !important; padding: 12px 20px; border-radius: 10px; 
         font-weight: bold; z-index: 1000; text-decoration: none !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
     
-    /* Cart Entry */
-    .cart-entry { 
-        background-color: #1C2128; 
-        border-left: 4px solid #3A8DFF; 
-        padding: 10px; border-radius: 8px; margin-bottom: 8px; 
-    }
-
-    /* Simple Buttons */
     .stButton>button {
-        background-color: #1E2633;
-        color: #3A8DFF;
-        border: 1px solid #3A8DFF;
-        border-radius: 8px;
-        width: 100%;
-        transition: 0.2s;
+        background-color: #1E2633; color: #3A8DFF; border: 1px solid #3A8DFF;
+        border-radius: 8px; width: 100%; transition: 0.2s;
     }
-    .stButton>button:hover {
-        background-color: #3A8DFF;
-        color: white !important;
-    }
+    .stButton>button:hover { background-color: #3A8DFF; color: white !important; }
 
-    /* Critical Stock Alert (Soft Red) */
-    .urgency-text {
-        color: #FF6B6B;
-        font-weight: bold;
-        font-size: 13px;
-        margin-top: 5px;
-    }
+    .cart-entry { background-color: #1C2128; border-left: 4px solid #3A8DFF; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- MOVING TAGLINE ---
+# --- FAST TAGLINE ---
 st.markdown("""
     <div class="marquee-container">
         <div class="marquee-content">
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5 Mins! 📦 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Sector-to-Sector Speed ⚡ &nbsp;&nbsp;&nbsp;</div>
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5 Mins! 📦 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Sector-to-Sector Speed ⚡ &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Fast Delivery Active! &nbsp;&nbsp; 📦 ROOM-TO-ROOM in 5 Mins! &nbsp;&nbsp; ⚡ Patel Mart Sector Speed ⚡ &nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Fast Delivery Active! &nbsp;&nbsp; 📦 ROOM-TO-ROOM in 5 Mins! &nbsp;&nbsp; ⚡ Patel Mart Sector Speed ⚡ &nbsp;&nbsp;</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -114,18 +96,14 @@ with st.sidebar:
             if st.button("Save Changes"):
                 supabase.table("inventory").update({"Stock": ns}).eq("Name", sel).execute()
                 st.rerun()
-        except: st.error("DB Error")
-    st.divider()
-    st.caption("Patel Mart v3.5 | Aesthetic Dark")
+        except: st.error("DB Connection Issue")
 
-# --- WHATSAPP (8864810011) ---
+# --- WHATSAPP ---
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
-# --- MAIN CONTENT ---
-col_h1, col_h2 = st.columns([3, 1])
-with col_h1: st.title("🛍️ Patel Bhavan Mart")
-with col_h2: search = st.text_input("🔍 Search...")
-
+# --- MAIN ---
+st.title("🛍️ Patel Bhavan Mart")
+search = st.text_input("🔍 Search...")
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
 selected_cat = st.segmented_control("Categories", options=cats, default="All")
 
@@ -136,8 +114,8 @@ with col_inv:
         db_query = supabase.table("inventory").select("*")
         if search: db_query = db_query.ilike("Name", f"%{search}%")
         if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
-        
         data = db_query.execute().data
+        
         grid = st.columns(2)
         for idx, item in enumerate(data or []):
             with grid[idx % 2]:
@@ -146,22 +124,19 @@ with col_inv:
                     st.subheader(item.get('Name'))
                     p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
                     st.write(f"Price: ₹{p} | Stock: {s}")
-                    
                     if s > 0:
-                        if s <= 3: st.markdown(f"<p class='urgency-text'>⚠️ Only {s} packets left!</p>", unsafe_allow_html=True)
-                        qty = st.number_input("Qty", 1, s, 1, key=f"q_{item['id']}")
+                        if s <= 3: st.markdown(f"<p class='urgency-blink'>🔥 Only {s} packets left!</p>", unsafe_allow_html=True)
                         if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
-                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': p, 's': s}
+                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': p, 's': s}
                             st.toast(f"✅ Added {item['Name']}")
-                            time.sleep(0.5)
+                            time.sleep(0.4)
                             st.rerun()
                     else: st.error("Out of Stock")
     except Exception as e: st.error(f"Error: {e}")
 
 with col_checkout:
     st.subheader("🧺 My Basket")
-    if not st.session_state.cart:
-        st.info("Empty")
+    if not st.session_state.cart: st.info("Empty")
     else:
         grand_total = 0
         order_list = ""
@@ -169,31 +144,24 @@ with col_checkout:
             sub = d['price'] * d['qty']
             grand_total += sub
             order_list += f"• {name} (x{d['qty']})\n"
-            st.markdown(f"<div class='cart-entry'><b>{name}</b><br>{d['qty']} x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='cart-entry'><b>{name}</b><br>1 x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
             if st.button(f"Remove {name}", key=f"rm_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
-
+        
         st.divider()
-        st.write(f"### TOTAL: ₹{grand_total}")
-        n = st.text_input("Name")
-        r = st.text_input("Room No.")
-        ph = st.text_input("Mobile No.")
+        st.write(f"### Total: ₹{grand_total}")
+        n, r, ph = st.text_input("Name"), st.text_input("Room No."), st.text_input("Mobile No.")
         rt = st.select_slider("Rating", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
         
         if st.button("🚀 CONFIRM ORDER"):
             if n and r and ph:
-                try:
-                    for name, d in st.session_state.cart.items():
-                        new_s = d['s'] - d['qty']
-                        supabase.table("inventory").update({"Stock": new_s}).eq("id", d['id']).execute()
-                    
-                    notify(f"🚀 *ORDER!*\n\n👤 *Name:* {n}\n📍 *Room:* {r}\n📞 *Phone:* {ph}\n🌟 *Rating:* {rt}\n\n📦 *Items:*\n{order_list}\n💰 *Total:* ₹{grand_total}")
-                    
-                    st.session_state.cart = {}
-                    st.balloons()
-                    st.success("Success! Watch your door.")
-                    time.sleep(2)
-                    st.rerun()
-                except: st.error("DB Error!")
-            else: st.warning("Details please!")
+                for name, d in st.session_state.cart.items():
+                    supabase.table("inventory").update({"Stock": d['s'] - d['qty']}).eq("id", d['id']).execute()
+                notify(f"🚀 *ORDER!*\n\n👤 *Name:* {n}\n📍 *Room:* {r}\n📞 *Phone:* {ph}\n🌟 *Rating:* {rt}\n\n📦 *Items:*\n{order_list}\n💰 *Total:* ₹{grand_total}")
+                st.session_state.cart = {}
+                st.balloons()
+                st.success("Success! Order placed.")
+                time.sleep(2)
+                st.rerun()
+            else: st.warning("Details fill karo!")
