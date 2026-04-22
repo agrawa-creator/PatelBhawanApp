@@ -21,33 +21,34 @@ def notify(msg):
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 
-st.set_page_config(page_title="Patel Bhavan Mart | Cyber", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="Patel Bhavan Mart | Elite", layout="wide", page_icon="⚡")
 
 # --- ADVANCED CSS ---
 st.markdown("""
     <style>
-    /* Seamless Moving Tagline Fix */
+    /* Seamless Moving Tagline */
     .marquee-container {
         width: 100%; overflow: hidden; background: linear-gradient(90deg, #00FFC3, #0080FF);
         padding: 12px 0; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,255,195,0.3);
         display: flex;
     }
-    .marquee-content {
-        display: flex;
-        white-space: nowrap;
-        animation: marquee 15s linear infinite;
-    }
-    .marquee-text {
-        font-weight: bold; color: black; font-size: 18px; padding-right: 50px;
-    }
-    @keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
+    .marquee-content { display: flex; white-space: nowrap; animation: marquee 15s linear infinite; }
+    .marquee-text { font-weight: bold; color: black; font-size: 18px; padding-right: 50px; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    /* Cyber Theme UI */
     .stApp { background: #050505; color: #00FFC3; }
     
+    /* URGENCY BLINKER (POINT 3) */
+    .urgency-blink {
+        color: #FF3131; 
+        font-weight: bold; 
+        font-size: 13px;
+        text-shadow: 0 0 5px #FF3131;
+        animation: blinker 0.8s linear infinite;
+        margin-top: 5px;
+    }
+    @keyframes blinker { 50% { opacity: 0; } }
+
     .whatsapp-btn { 
         position: fixed; bottom: 30px; right: 30px; background-color: #25d366; 
         color: white !important; padding: 15px 25px; border-radius: 50px; 
@@ -57,21 +58,17 @@ st.markdown("""
     }
     
     .cart-entry { background-color: rgba(255, 255, 255, 0.05); border-left: 5px solid #00FFC3; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-    
     .stButton>button { border: 1px solid #00FFC3; background: transparent; color: #00FFC3; width: 100%; }
     .stButton>button:hover { background: #00FFC3; color: black !important; }
-    
-    .trending-box { background: rgba(0, 255, 195, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #00FFC3; margin-bottom: 5px; font-size: 14px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- SEAMLESS MOVING TAGLINE ---
-# Note: Text ko repeat kiya hai seamless effect ke liye
 tagline_html = """
     <div class="marquee-container">
         <div class="marquee-content">
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... kyunki hum kar rahe hain ROOM-TO-ROOM Delivery! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Bhavan Mart: Fastest in the Campus! ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5-7 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... kyunki hum kar rahe hain ROOM-TO-ROOM Delivery! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Bhavan Mart: Fastest in the Campus! ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5-7 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 No Delivery Charges! 📦 &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 No Delivery Charges! 📦 &nbsp;&nbsp;&nbsp;</div>
         </div>
     </div>
 """
@@ -79,7 +76,7 @@ st.markdown(tagline_html, unsafe_allow_html=True)
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.title("🛠️ Manager Console")
+    st.title("🛡️ Admin Console")
     pwd = st.text_input("Manager Password", type="password")
     if pwd == "Patel123":
         st.success("Manager Mode Active ✅")
@@ -94,18 +91,16 @@ with st.sidebar:
                 st.rerun()
         except: st.error("DB Error")
     st.divider()
-    st.subheader("🔥 Trending Today")
-    st.markdown('<div class="trending-box">🍿 <b>Lays Magic Masala</b> - Trending</div>', unsafe_allow_html=True)
-    st.markdown('<div class="trending-box">🥤 <b>Sting Energy</b> - Fast Selling</div>', unsafe_allow_html=True)
+    st.info("Live Activity: 🚚 Order delivering to Sector-B...")
 
-# --- WHATSAPP SUPPORT (Number: 8864810011) ---
+# --- WHATSAPP SUPPORT (Number Fix) ---
 whatsapp_url = "https://wa.me/918864810011?text=Bhai%20ek%20help%20chahiye%20Patel%20Mart%20se"
 st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
 # --- MAIN CONTENT ---
 col_h1, col_h2 = st.columns([3, 1])
 with col_h1: st.title("🛍️ Patel Bhavan Mart")
-with col_h2: search = st.text_input("🔍 Search snacks...")
+with col_h2: search = st.text_input("🔍 Search...")
 
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
 selected_cat = st.segmented_control("Categories", options=cats, default="All")
@@ -125,15 +120,23 @@ with col_inv:
                     st.image(item.get('image url'), use_container_width=True)
                     st.subheader(item.get('Name'))
                     p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
-                    st.write(f"Price: ₹{p} | Stock: {s}")
+                    st.write(f"Price: ₹{p}")
+                    
+                    # --- URGENCY ALERT LOGIC (Point 3) ---
                     if s > 0:
+                        if s <= 3:
+                            st.markdown(f"<p class='urgency-blink'>🔥 CRITICAL STOCK: ONLY {s} LEFT!</p>", unsafe_allow_html=True)
+                        else:
+                            st.caption(f"Stock: {s} units")
+                            
                         qty = st.number_input("Qty", 1, s, 1, key=f"q_{item['id']}")
                         if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
                             st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': p, 's': s}
                             st.toast(f"✅ {item['Name']} added!")
                             time.sleep(0.5)
                             st.rerun()
-                    else: st.error("Out of Stock")
+                    else:
+                        st.error("Out of Stock ❌")
     except Exception as e: st.error(f"Error: {e}")
 
 with col_checkout:
@@ -156,7 +159,7 @@ with col_checkout:
         st.write(f"### TOTAL: ₹{grand_total}")
         n = st.text_input("👤 Your Name")
         r = st.text_input("📍 Room No.")
-        ph = st.text_input("📞 Phone No.")
+        ph = st.text_input("📞 Mobile No.")
         
         if st.button("🚀 EXECUTE ORDER"):
             if n and r and ph:
@@ -164,10 +167,10 @@ with col_checkout:
                     for name, d in st.session_state.cart.items():
                         new_s = d['s'] - d['qty']
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", d['id']).execute()
-                    notify(f"🚀 *NEW ORDER!*\nName: {n}\nRoom: {r}\nItems:\n{order_list}\nTotal: ₹{grand_total}")
+                    notify(f"🚀 *ORDER!*\nName: {n}\nRoom: {r}\nItems:\n{order_list}\nTotal: ₹{grand_total}")
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success("ORDER PLACED!")
+                    st.success("DONE! Coming to you.")
                     time.sleep(2)
                     st.rerun()
                 except: st.error("Database Error!")
