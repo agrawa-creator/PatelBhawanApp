@@ -19,8 +19,8 @@ st.set_page_config(page_title="Patel Bhavan Marg", layout="wide")
 st.title("🛒 Patel Bhavan Marg - Quick Delivery")
 
 # 3. Items Fetch Karna
-items = supabase.table("inventory").select("*").eq("is_available", True).execute()
-
+# Is line ko mita kar niche wali line likh do
+items = supabase.table("inventory").select("*").execute()
 # 4. Items Display (Aesthetic Grid)
 cols = st.columns(3)
 for i, item in enumerate(items.data):
