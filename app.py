@@ -124,7 +124,7 @@ with st.sidebar:
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
 # --- MAIN SHOP ---
-st.title("🛍️ Patel Bhavan Mart")
+st.title("🛍️ Patel Bhawan Mart")
 search = st.text_input("🔍 Search snacks...")
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
 selected_cat = st.segmented_control("Categories", options=cats, default="All")
