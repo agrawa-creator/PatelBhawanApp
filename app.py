@@ -39,7 +39,7 @@ st.markdown("""
     .marquee-content { 
         display: flex; 
         white-space: nowrap; 
-        animation: marquee 3s linear infinite; /* YAHAN SPEED 3 SECONDS HAI */
+        animation: marquee 10s linear infinite; /* YAHAN SPEED 3 SECONDS HAI */
     }
     .marquee-text { font-weight: bold; color: #3A8DFF; font-size: 16px; padding-right: 100px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
