@@ -40,7 +40,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- FLASH DEAL MARQUEE ---
-st.markdown('<div class="marquee">⚡ FLASH DEAL: Aaj Midnight Study Combo par ₹10 OFF! Room 210 se order karein! ⚡</div>', unsafe_allow_html=True)
+st.markdown('<div class="marquee">⚡ Bhai aab aapko apne room s bhar jane ki jrurt nhi h kyuki hm kr rhe h room to room delivery ⚡</div>', unsafe_allow_html=True)
 
 # --- SIDEBAR: NEXT LEVEL MANAGER & STATS ---
 with st.sidebar:
