@@ -22,85 +22,137 @@ if 'cart' not in st.session_state:
 # UI Setup
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# Aesthetic CSS
+# --- CUSTOM CSS FOR PREMIUM LOOK ---
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 10px; font-weight: bold; }
-    .save-badge { background-color: #e6fffa; color: #00875a; padding: 5px; border-radius: 5px; font-size: 12px; font-weight: bold; }
-    .cart-box { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #00CC66; }
+    /* Main Background and Title */
+    .main { background-color: #fcfcfc; }
+    h1 { color: #1E1E1E; font-family: 'Helvetica Neue', sans-serif; }
+    
+    /* Product Card Styling */
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        border: none;
+        height: 3em;
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #00CC66;
+        color: white;
+        transform: scale(1.02);
+    }
+    
+    /* Savings Badge */
+    .save-badge {
+        background-color: #D4EDDA;
+        color: #155724;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    
+    /* Sidebar Styling */
+    .css-1d391kg { background-color: #ffffff; border-left: 1px solid #eee; }
+    .cart-header { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- SIDEBAR CART SYSTEM ---
 with st.sidebar:
-    st.title("🛒 Your Cart")
+    st.markdown("<div class='cart-header'>🛒 My Basket</div>", unsafe_allow_html=True)
+    
     if not st.session_state.cart:
-        st.write("Cart khali hai bhai! Kuch le lo.")
+        st.info("Bhai, cart khali hai. Kuch tasty add karo! 😋")
     else:
         total_bill = 0
-        cart_summary = ""
+        cart_details_msg = ""
+        
         for item_name, details in list(st.session_state.cart.items()):
             subtotal = details['price'] * details['qty']
             total_bill += subtotal
-            st.markdown(f"**{item_name}** (x{details['qty']}) - ₹{subtotal}")
-            cart_summary += f"• {item_name} (x{details['qty']}) - ₹{subtotal}\n"
-            if st.button(f"Remove {item_name}", key=f"remove_{item_name}"):
-                del st.session_state.cart[item_name]
-                st.rerun()
+            
+            # Individual Cart Item Row
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"**{item_name}**\n{details['qty']} x ₹{details['price']}")
+            with col2:
+                if st.button("❌", key=f"del_{item_name}"):
+                    del st.session_state.cart[item_name]
+                    st.rerun()
+            
+            cart_details_msg += f"• {item_name} (x{details['qty']}) - ₹{subtotal}\n"
+            st.markdown("---")
         
-        st.markdown("---")
-        st.subheader(f"Total: ₹{total_bill}")
+        # Total and Checkout
+        st.markdown(f"### Total Bill: `₹{total_bill}`")
         
-        # Checkout Form in Sidebar
-        room = st.text_input("Room No", placeholder="e.g. 101")
-        phone = st.text_input("Phone", placeholder="Mobile number")
+        st.subheader("📍 Delivery Details")
+        room_no = st.text_input("Room No.", placeholder="Ex: 102")
+        phone_no = st.text_input("Mobile No.", placeholder="Ex: 9876XXXXXX")
         
-        if st.button("🚀 PLACE ORDER"):
-            if room and phone and st.session_state.cart:
-                final_msg = f"🔥 *NAYA CART ORDER!*\n\n📍 *Room:* {room}\n📞 *Phone:* {phone}\n\n*Items:*\n{cart_summary}\n💰 *FINAL BILL: ₹{total_bill}*"
-                send_telegram_msg(final_msg)
-                st.session_state.cart = {} # Clear cart
+        if st.button("🚀 Confirm Order"):
+            if room_no and phone_no:
+                order_summary = f"📦 *NEW ORDER - Patel Bhavan Mart*\n\n" \
+                                f"👤 *Customer:* {phone_no}\n" \
+                                f"🏢 *Room:* {room_no}\n\n" \
+                                f"*Items:*\n{cart_details_msg}\n" \
+                                f"💰 *Final Amount:* ₹{total_bill}\n\n" \
+                                f"jaldi delivery de do! 🔥"
+                
+                send_telegram_msg(order_summary)
+                st.session_state.cart = {} # Clear Cart
                 st.balloons()
-                st.success("Order ho gaya! Telegram par check kar.")
+                st.success("Success! Order placed.")
                 st.rerun()
             else:
-                st.error("Details bharo!")
+                st.warning("Please fill Room and Phone details.")
 
 # --- MAIN PAGE ---
-st.title("🛒 Patel Bhavan Mart")
+st.markdown("# 🛍️ Patel Bhavan Mart")
+st.caption("Fresh items, Delivered in minutes to your room.")
 st.markdown("---")
 
 try:
+    # Fetch Data
     response = supabase.table("inventory").select("*").execute()
-    items = response.data
+    inventory_data = response.data
 
-    if not items:
-        st.warning("Inventory khali hai!")
+    if not inventory_data:
+        st.write("Abhi shop band hai, thodi der mein aao! 👋")
     else:
-        cols = st.columns(3)
-        for i, item in enumerate(items):
-            with cols[i % 3]:
-                # Data
-                img = item.get('image url', 'https://via.placeholder.com/150')
-                name = item.get('Name', 'Item')
-                mrp = int(item.get('MRP', 0))
-                price = int(item.get('Price', 0))
+        # Display in 3 Columns
+        main_cols = st.columns(3)
+        for idx, item in enumerate(inventory_data):
+            with main_cols[idx % 3]:
+                # Extract Data
+                p_img = item.get('image url', 'https://via.placeholder.com/200')
+                p_name = item.get('Name', 'Mart Item')
+                p_mrp = int(item.get('MRP', 0))
+                p_price = int(item.get('Price', 0))
                 
-                # Display
-                st.image(img, use_container_width=True)
-                st.subheader(name)
-                st.write(f"~~MRP: ₹{mrp}~~ | **Price: ₹{price}**")
+                # Card UI
+                st.image(p_img, use_container_width=True)
+                st.markdown(f"### {p_name}")
                 
-                # Savings
-                if mrp > price:
-                    st.markdown(f"<span class='save-badge'>You Save ₹{mrp-price}!</span>", unsafe_allow_html=True)
+                # Price Section
+                if p_mrp > p_price:
+                    st.markdown(f"<div class='save-badge'>SAVE ₹{p_mrp - p_price}</div>", unsafe_allow_html=True)
+                    st.write(f"~~₹{p_mrp}~~ **₹{p_price}**")
+                else:
+                    st.write(f"**Price: ₹{p_price}**")
                 
-                # Add to Cart Logic
-                qty = st.number_input("Qty", min_value=1, max_value=10, key=f"q_{i}")
-                if st.button(f"➕ Add to Cart", key=f"add_{i}"):
-                    st.session_state.cart[name] = {'price': price, 'qty': qty}
-                    st.toast(f"{name} cart mein add ho gaya!")
+                # Quantity and Add Button
+                selected_qty = st.number_input("Quantity", min_value=1, max_value=20, value=1, key=f"q_input_{idx}")
+                
+                if st.button(f"🛒 Add to Basket", key=f"add_btn_{idx}"):
+                    st.session_state.cart[p_name] = {'price': p_price, 'qty': selected_qty}
+                    st.toast(f"✅ {p_name} added to basket!")
+                    # Small pause to let toast show, then rerun to update sidebar
                     st.rerun()
 
-except Exception as e:
-    st.error(f"Error: {e}")
+except Exception as error:
+    st.error(f"⚠️ Mart is facing an issue: {error}")
