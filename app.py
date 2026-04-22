@@ -20,153 +20,144 @@ def notify(msg):
 
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
+if 'order_placed' not in st.session_state: st.session_state.order_placed = False
 
-st.set_page_config(page_title="Patel Bhavan Mart | Pro Max", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="Patel Bhavan Mart | Elite", layout="wide", page_icon="💎")
 
-# --- ADVANCED CSS (Animations & Floating Button) ---
+# --- ULTRA MODERN CSS ---
 st.markdown("""
     <style>
-    /* Flash Deal Marquee */
-    .marquee { background: linear-gradient(90deg, #FF4B4B, #FF914D); color: white; padding: 10px; font-weight: bold; border-radius: 10px; margin-bottom: 20px; text-align: center; }
+    /* Gradient Background */
+    .stApp { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; }
     
-    /* Floating WhatsApp Button */
-    .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: white; padding: 15px; border-radius: 50px; text-align: center; font-size: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 999; text-decoration: none; }
+    /* Order Tracker Styling */
+    .tracker-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); text-align: center; margin-bottom: 20px; }
     
-    /* Cart & Items Styling */
-    .cart-entry { background-color: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid #00CC66; }
-    .low-stock-alert { color: #FF4B4B; font-weight: bold; font-size: 12px; animation: blinker 1.5s linear infinite; }
-    @keyframes blinker { 50% { opacity: 0; } }
+    /* Product Card Styling */
+    .product-card { border-radius: 20px; transition: 0.3s; padding: 15px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .product-card:hover { transform: translateY(-5px); border-color: #FFD700; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    
+    /* Custom Sidebar */
+    .css-1d391kg { background-color: rgba(0, 0, 0, 0.5) !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- FLASH DEAL MARQUEE ---
-st.markdown('<div class="marquee">⚡ Bhai aab aapko apne room s bhar jane ki jrurt nhi h kyuki hm kr rhe h room to room delivery ⚡</div>', unsafe_allow_html=True)
+# --- HEADER SECTION ---
+st.markdown("<h1 style='text-align: center; color: #FFD700;'>💎 PATEL BHAVAN MART 💎</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px;'>Beyond Delivery. Room-to-Room Innovation.</p>", unsafe_allow_html=True)
+st.divider()
 
-# --- SIDEBAR: NEXT LEVEL MANAGER & STATS ---
+# --- SIDEBAR: MANAGER GOD MODE ---
 with st.sidebar:
-    st.title("🛠️ Manager Console")
-    pwd = st.text_input("Admin Password", type="password")
+    st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
+    st.title("Manager Portal")
+    pwd = st.text_input("Access Key", type="password")
     
     if pwd == "Patel123":
-        st.success("Welcome, Boss! 😎")
+        st.success("Authorized Access")
+        # Today's Sales Counter
+        st.metric("Today's Revenue", "₹1,240", delta="+12% from yesterday")
         
-        # Smart Inventory Alerts
-        st.subheader("⚠️ Low Stock Alerts")
-        items_data = supabase.table("inventory").select("*").execute().data
-        low_stock_items = [i for i in items_data if int(i['Stock']) <= 3]
-        if low_stock_items:
-            for lsi in low_stock_items:
-                st.error(f"Khatam hone wala hai: {lsi['Name']} (Bachay: {lsi['Stock']})")
-        else:
-            st.write("Sabar ka phal meetha hai, sab full hai! ✅")
-        
-        st.divider()
-        
-        # Stock & Price Editor
-        st.subheader("✏️ Quick Update")
-        item_names = [i['Name'] for i in items_data]
-        sel_name = st.selectbox("Product", item_names)
-        curr = next(i for i in items_data if i['Name'] == sel_name)
-        
-        c1, c2 = st.columns(2)
-        with c1: n_p = st.number_input("Price", value=int(curr['Price']))
-        with c2: n_s = st.number_input("Stock", value=int(curr['Stock']))
-        
-        if st.button("Save Changes"):
-            supabase.table("inventory").update({"Price": n_p, "Stock": n_s}).eq("Name", sel_name).execute()
-            st.toast("Updated!")
-            time.sleep(1)
+        # Fast Stock Control
+        st.subheader("Inventory Quick-Fix")
+        items_data = supabase.table("inventory").select("Name", "Stock").execute().data
+        for item in items_data:
+            if int(item['Stock']) < 5:
+                st.warning(f"Refill {item['Name']}! (Only {item['Stock']} left)")
+    else:
+        st.info("Enter password for business analytics.")
+
+# --- ORDER TRACKER (Unexpected 1st Year Feature) ---
+if st.session_state.order_placed:
+    with st.container():
+        st.markdown("""
+        <div class='tracker-card'>
+            <h3 style='color: #FFD700;'>🚀 Order Status: On the Way!</h3>
+            <p>Our delivery boy is currently near Wing-A.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.progress(65) # Show 65% complete
+        if st.button("Close Tracker"):
+            st.session_state.order_placed = False
             st.rerun()
 
-    st.divider()
-    # Leaderboard (Point 5)
-    st.subheader("🏆 Leaderboard")
-    st.markdown("1. **Rahul (Room 102)** - 15 Orders\n2. **Sumit (Room 304)** - 12 Orders\n3. **Vivek (Room 211)** - 10 Orders")
+# --- SEARCH & FILTER ---
+col1, col2 = st.columns([2, 1])
+with col1:
+    search = st.text_input("🔍 What are you craving?", placeholder="Search chips, drinks, combos...")
+with col2:
+    cat = st.selectbox("Category", ["All", "Snacks", "Drinks", "Combos", "Essentials"])
+
+# --- PRODUCT GRID ---
+st.subheader("📦 Prime Selection")
+try:
+    query = supabase.table("inventory").select("*")
+    if search: query = query.ilike("Name", f"%{search}%")
+    if cat != "All": query = query.eq("Category", cat)
+    items = query.execute().data
     
+    cols = st.columns(3) # 3 Items per row for a more 'App' feel
+    for idx, item in enumerate(items):
+        with cols[idx % 3]:
+            with st.container():
+                st.markdown(f"<div class='product-card'>", unsafe_allow_html=True)
+                st.image(item.get('image url'), use_container_width=True)
+                st.subheader(item.get('Name'))
+                
+                price, stock = int(item.get('Price', 0)), int(item.get('Stock', 0))
+                st.write(f"🏷️ Price: **₹{price}**")
+                
+                if stock > 0:
+                    st.caption(f"Stock: {stock} units available")
+                    if st.button(f"Add +", key=f"add_{item['id']}"):
+                        st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': price, 's': stock}
+                        st.toast(f"✅ {item['Name']} added to cart!")
+                        time.sleep(0.5)
+                        st.rerun()
+                else:
+                    st.error("Out of Stock")
+                st.markdown("</div>", unsafe_allow_html=True)
+                st.write("") # Spacer
+
+except Exception as e:
+    st.error(f"Error: {e}")
+
+# --- SHOPPING CART (SIDE DRAWER FEEL) ---
+if st.session_state.cart:
     st.divider()
-    # WhatsApp Support (Point 3)
-    st.markdown('<a href="https://wa.me/91XXXXXXXXXX" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
-
-# --- MAIN PAGE ---
-col_h1, col_h2 = st.columns([3, 1])
-with col_h1:
-    st.title("🛍️ Patel Bhavan Mart")
-    st.write("Professional Hostel Startup | Faster than your WiFi ⚡")
-with col_h2:
-    search = st.text_input("🔍 Search snacks...")
-
-# Category with "Combos" (Point 2)
-cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
-selected_cat = st.segmented_control("Categories", options=cats, default="All")
-
-col_inv, col_cart = st.columns([2, 1])
-
-with col_inv:
-    try:
-        db_query = supabase.table("inventory").select("*")
-        if search: db_query = db_query.ilike("Name", f"%{search}%")
-        if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
-        
-        data = db_query.execute().data
-        grid = st.columns(2)
-        for idx, item in enumerate(data or []):
-            with grid[idx % 2]:
-                with st.container(border=True):
-                    st.image(item.get('image url'), use_container_width=True)
-                    st.subheader(item.get('Name'))
-                    p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
-                    
-                    st.write(f"**Price: ₹{p}**")
-                    if s > 0:
-                        st.markdown(f"📦 Stock: {s}")
-                        if s <= 3: st.markdown("<p class='low-stock-alert'>⚠️ Low Stock!</p>", unsafe_allow_html=True)
-                        
-                        qty = st.number_input("Qty", 1, s, 1, key=f"q_{item['id']}")
-                        if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
-                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': p, 's': s}
-                            st.toast(f"✅ {item['Name']} added!")
-                            time.sleep(0.5)
-                            st.rerun()
-                    else:
-                        st.error("Khatam Ho Gaya ❌")
-    except Exception as e: st.error(f"Error: {e}")
-
-with col_cart:
-    st.subheader("🧺 Checkout")
-    if not st.session_state.cart:
-        st.info("Basket khali hai!")
-    else:
-        grand_total = 0
-        order_list = ""
+    st.header("🛒 Checkout")
+    c1, c2 = st.columns([2, 1])
+    
+    with c1:
+        total = 0
+        summary = ""
         for name, d in list(st.session_state.cart.items()):
             sub = d['price'] * d['qty']
-            grand_total += sub
-            order_list += f"• {name} (x{d['qty']})\n"
-            st.markdown(f"<div class='cart-entry'><b>{name}</b><br>{d['qty']} x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
-            if st.button(f"🗑️ Remove {name}", key=f"rm_{name}"):
+            total += sub
+            summary += f"• {name} (x{d['qty']})\n"
+            st.write(f"**{name}** - ₹{sub}")
+            if st.button(f"Remove", key=f"rm_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
-
-        st.divider()
-        st.write(f"### Total: ₹{grand_total}")
-        n = st.text_input("👤 Your Name")
-        r = st.text_input("📍 Room No.")
-        ph = st.text_input("📞 Mobile No.")
-        rating = st.select_slider("Rate Experience", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
+                
+    with c2:
+        st.markdown(f"### Total: ₹{total}")
+        n = st.text_input("Name")
+        r = st.text_input("Room No.")
         
-        if st.button("🚀 CONFIRM ORDER"):
-            if n and r and ph:
-                try:
-                    for name, d in st.session_state.cart.items():
-                        new_s = d['s'] - d['qty']
-                        supabase.table("inventory").update({"Stock": new_s}).eq("id", d['id']).execute()
-                    
-                    msg = f"🚀 *ORDER BY {n}*\nRoom: {r}\nPhone: {ph}\nRating: {rating}\nItems:\n{order_list}\nTotal: ₹{grand_total}"
-                    notify(msg)
-                    st.session_state.cart = {}
-                    st.balloons()
-                    st.success("Placed! 5 mins mein milte hain.")
-                    time.sleep(2)
-                    st.rerun()
-                except: st.error("Stock update fail!")
-            else: st.warning("Details bharo bhai!")
+        if st.button("⚡ PLACE ORDER"):
+            if n and r:
+                # Update Stock
+                for name, d in st.session_state.cart.items():
+                    supabase.table("inventory").update({"Stock": d['s'] - d['qty']}).eq("id", d['id']).execute()
+                
+                notify(f"💎 *ELITE ORDER!*\nCustomer: {n}\nRoom: {r}\nItems:\n{summary}\nTotal: ₹{total}")
+                st.session_state.cart = {}
+                st.session_state.order_placed = True
+                st.balloons()
+                st.rerun()
+            else:
+                st.warning("Details missing!")
+
+# --- FLOATING SUPPORT ---
+st.markdown('<a href="https://wa.me/91XXXXXXXXXX" style="position:fixed; bottom:20px; left:20px; background:#25d366; color:white; padding:10px 20px; border-radius:30px; text-decoration:none; font-weight:bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">💬 Support</a>', unsafe_allow_html=True)
