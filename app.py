@@ -16,9 +16,12 @@ CHAT_ID_2 = "6927591741"
 def send_dual_notifications(msg):
     ids = [CHAT_ID_1, CHAT_ID_2]
     for chat_id in ids:
-        f_url = f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage?chat_id={chat_id}&text={msg}&parse_mode=Markdown"
-        try: requests.get(f_url)
-        except: pass
+        f_url = f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage"
+        payload = {"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"}
+        try:
+            requests.post(f_url, data=payload)
+        except Exception as e:
+            st.error(f"Telegram Error: {e}")
 
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
@@ -38,14 +41,12 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("🛍️ Patel Bhavan Mart")
-st.caption("Auto-Stock Update System Enabled 🚀")
+st.caption("Auto-Stock Update & Dual Alerts 🚀")
 st.divider()
 
-# --- SUCCESS ANIMATION ---
 if st.session_state.order_success:
     st.balloons()
-    st.snow()
-    st.success("### 🎉 ORDER BOOKED! Stock update ho gaya hai.")
+    st.success("### 🎉 ORDER BOOKED! Stock & Telegram Updated.")
     time.sleep(3)
     st.session_state.order_success = False
     st.rerun()
@@ -80,7 +81,7 @@ with col_inv:
                         st.markdown(f"<span class='stock-low'>Only {stock} left</span>", unsafe_allow_html=True)
                         q = st.number_input("Qty", 1, stock, 1, key=f"q_{idx}")
                         if st.button(f"🛒 Add to Basket", key=f"add_{idx}"):
-                            st.session_state.cart[item.get('Name')] = {'price': price, 'qty': q, 'id': item.get('id'), 'current_stock': stock}
+                            st.session_state.cart[item.get('Name')] = {'price': price, 'qty': q, 'current_stock': stock}
                             st.toast(f"✅ {item.get('Name')} added!")
                             st.rerun()
     except Exception as e: st.error(f"Error: {e}")
@@ -110,22 +111,21 @@ with col_cart:
         
         if st.button("✅ CONFIRM & BOOK"):
             if r and p:
+                # 1. Pehle Telegram Message bhejo
+                order_msg = f"🚀 *NAYA ORDER AAYA HAI!*\n\n📍 *Room:* {r}\n📞 *Phone:* {p}\n\n*Items:*\n{summary}\n💰 *Total:* ₹{total}"
+                send_dual_notifications(order_msg)
+                
+                # 2. Phir Supabase Update karo
                 try:
-                    # --- STOCK REDUCING LOGIC ---
                     for name, d in st.session_state.cart.items():
                         new_stock = d['current_stock'] - d['qty']
-                        # Supabase mein update kar rahe hain
                         supabase.table("inventory").update({"Stock": new_stock}).eq("Name", name).execute()
-                    
-                    # Send Notification
-                    order_msg = f"🚀 *ORDER BOOKED & STOCK UPDATED!*\n\n📍 *Room:* {r}\n📞 *Phone:* {p}\n\n*Items:*\n{summary}\n💰 *Total:* ₹{total}"
-                    send_dual_notifications(order_msg)
                     
                     st.session_state.cart = {}
                     st.session_state.order_success = True
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Stock update fail: {e}")
+                    st.error(f"Stock Update Error: {e}. Message sent to Telegram anyway!")
             else:
-                st.error("Details bharo!")
+                st.error("Room aur Phone number bharo!")
     st.markdown("</div>", unsafe_allow_html=True)
