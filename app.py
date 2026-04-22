@@ -8,8 +8,8 @@ key = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(url, key)
 
 # --- TELEGRAM SETTINGS (Fixed with your details) ---
-TELE_TOKEN = "7954541566:AAFdSIYkxCp1KYCZN3CFhj5Fd8TU89X6whs"
-CHAT_ID = "7261699388"
+TELE_TOKEN = "8617865679:AAHKLD-DqL1edti5gqRGj7 QtepkDnRX4b_0"
+CHAT_ID = "6927591741"
 
 def send_telegram_msg(msg):
     # Telegram API call
