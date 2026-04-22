@@ -29,6 +29,7 @@ st.markdown("""
     <style>
     .stButton>button { border-radius: 8px; transition: 0.3s; }
     .cart-item { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 4px solid #00CC66; }
+    .delivery-tag { background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
     .shop-status-ui { font-size: 18px; font-weight: bold; padding: 10px; border-radius: 10px; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
@@ -36,49 +37,42 @@ st.markdown("""
 # --- SIDEBAR: SECURE MANAGER CONTROL ---
 with st.sidebar:
     st.title("🛠️ Control Panel")
+    pwd = st.text_input("Manager Password", type="password")
     
-    # Manager Authentication
-    st.subheader("Admin Login")
-    pwd = st.text_input("Manager Password", type="password", help="Sirf managers ke liye")
+    if pwd == "Patel123":
+        st.success("Welcome, Manager!")
+        st.session_state.shop_open = st.toggle("Shop Open", value=st.session_state.shop_open)
     
-    # Ye switch tabhi dikhega jab password 'Patel123' hoga
-    if pwd == "Chirag@123":
-        st.success("Welcome, Manager! 😎")
-        st.session_state.shop_open = st.toggle("Open Shop", value=st.session_state.shop_open)
-    else:
-        if pwd:
-            st.error("Wrong Password, Bhai!")
-        st.info("Status badalne ke liye password dalo.")
-
     st.divider()
-    # Status Display for everyone
     if st.session_state.shop_open:
         st.markdown("<div style='background-color:#d4edda; color:#155724;' class='shop-status-ui'>🟢 SHOP OPEN</div>", unsafe_allow_html=True)
     else:
         st.markdown("<div style='background-color:#f8d7da; color:#721c24;' class='shop-status-ui'>🔴 SHOP CLOSED</div>", unsafe_allow_html=True)
 
-# --- MAIN PAGE ---
+# --- HEADER & SEARCH ---
 col_h1, col_h2 = st.columns([3, 1])
 with col_h1:
     st.title("🛍️ Patel Bhavan Mart")
-    st.write("Fastest Delivery in the Campus! ⚡")
+    st.write("Professional Campus Store ⚡")
 with col_h2:
     search = st.text_input("🔍 Search snacks...")
 
-# --- CHECK SHOP STATUS ---
+# --- CATEGORY FILTER ---
+cats = ["All", "Snacks", "Drinks", "Biscuits", "Others"]
+selected_cat = st.segmented_control("Categories", options=cats, default="All")
+
 if not st.session_state.shop_open:
-    st.warning("### 😴 Shop abhi band hai! Hamare manager abhi aaram kar rahe hain.")
+    st.warning("### 😴 Shop abhi band hai! Kal milte hain.")
     st.stop()
 
-# --- CONTENT LAYOUT ---
+# --- MAIN CONTENT ---
 col_items, col_checkout = st.columns([2, 1])
 
 with col_items:
-    st.subheader("📦 Inventory")
     try:
         db_query = supabase.table("inventory").select("*")
-        if search:
-            db_query = db_query.ilike("Name", f"%{search}%")
+        if search: db_query = db_query.ilike("Name", f"%{search}%")
+        if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
         
         items = db_query.execute().data
         grid = st.columns(2)
@@ -90,13 +84,13 @@ with col_items:
                     mrp, price, stock = int(item.get('MRP', 0)), int(item.get('Price', 0)), int(item.get('Stock', 0))
                     
                     st.write(f"~~₹{mrp}~~ | **₹{price}**")
+                    st.markdown("<span class='delivery-tag'>⏱️ 5-7 MINS</span>", unsafe_allow_html=True)
                     
                     if stock > 0:
-                        st.caption(f"Bache hain: {stock}")
                         qty = st.number_input("Qty", 1, stock, 1, key=f"qty_{item['id']}")
                         if st.button(f"Add to Basket", key=f"add_{item['id']}"):
                             st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': price, 's': stock}
-                            st.toast(f"✅ {item['Name']} added!")
+                            st.toast(f"✅ Added {item['Name']}!")
                             time.sleep(0.5)
                             st.rerun()
                     else:
@@ -115,13 +109,17 @@ with col_checkout:
             grand_total += sub
             order_list += f"• {name} (x{d['qty']})\n"
             st.markdown(f"<div class='cart-item'><b>{name}</b><br>{d['qty']} x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
-            if st.button(f"Remove {name}", key=f"rm_{name}"):
+            if st.button("🗑️", key=f"rm_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
 
         st.divider()
         st.write(f"### Total: ₹{grand_total}")
-        c_name = st.text_input("👤 Your Name")
+        
+        # PAYMENT SECTION (Point 5)
+        st.warning("💳 **Payment:** Pay via UPI on Delivery")
+        
+        c_name = st.text_input("👤 Name")
         c_room = st.text_input("📍 Room No.")
         c_phone = st.text_input("📞 Mobile No.")
         
@@ -131,11 +129,11 @@ with col_checkout:
                     for name, d in st.session_state.cart.items():
                         supabase.table("inventory").update({"Stock": d['s'] - d['qty']}).eq("id", d['id']).execute()
                     
-                    msg = f"🔔 *ORDER! (By {c_name})*\n📍 Room: {c_room}\n📞 Phone: {c_phone}\nItems:\n{order_list}\nTotal: ₹{grand_total}"
+                    msg = f"🚀 *ORDER BY {c_name}*\n📍 Room: {c_room}\n📞 Phone: {c_phone}\nItems:\n{order_list}\n💰 Total: ₹{grand_total}"
                     notify(msg)
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success("Done! Delivery on the way.")
+                    st.success("Order Placed!")
                     time.sleep(3)
                     st.rerun()
                 except: st.error("Stock error!")
