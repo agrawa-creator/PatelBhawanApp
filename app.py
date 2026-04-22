@@ -23,21 +23,25 @@ def notify(msg):
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 
-st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
+st.set_page_config(page_title="Patel BhaWan Mart", layout="wide", page_icon="🛒")
 
-# --- CSS UPDATES (Speed & Blink) ---
+# --- CSS UPDATES (Super Fast Speed) ---
 st.markdown("""
     <style>
     .stApp { background-color: #0F1116; color: #E0E0E0; }
     
-    /* Fast Moving Tagline (Speed increased to 10s) */
+    /* Super Fast Moving Tagline (Speed: 5s) */
     .marquee-container {
         width: 100%; overflow: hidden; background: #1E2633;
         padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #3A8DFF;
     }
-    .marquee-content { display: flex; white-space: nowrap; animation: marquee 10s linear infinite; }
-    .marquee-text { font-weight: 500; color: #3A8DFF; font-size: 16px; padding-right: 60px; }
+    .marquee-content { 
+        display: flex; 
+        white-space: nowrap; 
+        animation: marquee 5s linear infinite; /* Speed set to 5 seconds */
+    }
+    .marquee-text { font-weight: bold; color: #3A8DFF; font-size: 16px; padding-right: 80px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
     /* Red Blinking Animation for Stock */
@@ -72,12 +76,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- FAST TAGLINE ---
+# --- SUPER FAST TAGLINE ---
 st.markdown("""
     <div class="marquee-container">
         <div class="marquee-content">
-            <div class="marquee-text">🚀 Fast Delivery Active! &nbsp;&nbsp; 📦 ROOM-TO-ROOM in 5 Mins! &nbsp;&nbsp; ⚡ Patel Mart Sector Speed ⚡ &nbsp;&nbsp;</div>
-            <div class="marquee-text">🚀 Fast Delivery Active! &nbsp;&nbsp; 📦 ROOM-TO-ROOM in 5 Mins! &nbsp;&nbsp; ⚡ Patel Mart Sector Speed ⚡ &nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡ &nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡ &nbsp;&nbsp;</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -103,7 +107,7 @@ st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsap
 
 # --- MAIN ---
 st.title("🛍️ Patel Bhavan Mart")
-search = st.text_input("🔍 Search...")
+search = st.text_input("🔍 Search snacks...")
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
 selected_cat = st.segmented_control("Categories", options=cats, default="All")
 
