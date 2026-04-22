@@ -1,36 +1,47 @@
 import streamlit as st
 from supabase import create_client
 
-# URL aur Key tumhari wali hi rehne dena
-url = "https://tmwolhvzosjcegjmirrh.supabase.co/rest/v1/"
+# --- DIRECT CONFIGURATION (No Editing Needed) ---
+url = "https://tmwolhvzosjcegjmirrh.supabase.co"
 key = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(url, key)
 
+# UI Setup
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide")
-st.title("🛒 Patel Bhavan Mart - Quick Delivery")
+st.title("🛒 Patel Bhavan Mart")
+st.markdown("---")
 
 try:
-    # Tumhari table ka naam 'inventory' small mein hi hai
+    # Fetching data from your 'inventory' table
     response = supabase.table("inventory").select("*").execute()
     items = response.data
 
     if not items:
-        st.warning("Bhai, Table khali hai!")
+        st.warning("Bhai, Table mein abhi koi item nahi hai. Supabase mein 'Insert' button dabakar data bharo!")
     else:
+        # Creating a 3-column grid for the mart
         cols = st.columns(3)
         for i, item in enumerate(items):
             with cols[i % 3]:
-                # Yahan humne Name, Price aur image url ko wahi rakha hai jo screenshot mein hai
-                st.image(item.get('image url', 'https://via.placeholder.com/150'), use_container_width=True)
-                st.subheader(item.get('Name', 'Item'))
-                st.write(f"MRP: ₹{item.get('MRP', 0)} | **Price: ₹{item.get('Price', 0)}**")
+                # image url, Name, Price, MRP exact as per your screenshot
+                img = item.get('image url', 'https://via.placeholder.com/150')
+                name = item.get('Name', 'Unknown Item')
+                mrp = item.get('MRP', 0)
+                price = item.get('Price', 0)
                 
-                with st.expander(f"Order {item.get('Name')}"):
-                    room = st.text_input("Room No", key=f"room_{i}")
+                st.image(img, use_container_width=True)
+                st.subheader(name)
+                st.write(f"~~MRP: ₹{mrp}~~ | **Price: ₹{price}**")
+                
+                # Simple Order Section
+                with st.expander(f"Order {name}"):
+                    room = st.text_input("Room Number", key=f"room_{i}")
                     if st.button("Confirm Order", key=f"btn_{i}"):
                         if room:
-                            st.success(f"Bhai Room {room} ke liye order ho gaya!")
+                            st.balloons()
+                            st.success(f"🚀 Order Done! Room {room} par 5 min mein pahunch jayega.")
                         else:
-                            st.error("Room No?")
+                            st.error("Bhai Room No. toh likh de!")
+
 except Exception as e:
-    st.error(f"Error: {e}")
+    st.error(f"Oye, abhi bhi error hai: {e}")
