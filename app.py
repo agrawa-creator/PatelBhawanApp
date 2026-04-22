@@ -26,24 +26,28 @@ st.set_page_config(page_title="Patel Bhavan Mart | Cyber", layout="wide", page_i
 # --- ADVANCED CSS ---
 st.markdown("""
     <style>
-    /* Smooth Moving Tagline */
+    /* Seamless Moving Tagline Fix */
     .marquee-container {
         width: 100%; overflow: hidden; background: linear-gradient(90deg, #00FFC3, #0080FF);
         padding: 12px 0; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,255,195,0.3);
+        display: flex;
+    }
+    .marquee-content {
+        display: flex;
+        white-space: nowrap;
+        animation: marquee 15s linear infinite;
     }
     .marquee-text {
-        display: inline-block; white-space: nowrap; font-weight: bold; color: black;
-        font-size: 18px; animation: marquee 25s linear infinite;
+        font-weight: bold; color: black; font-size: 18px; padding-right: 50px;
     }
     @keyframes marquee {
-        0% { transform: translateX(100%); }
-        100% { transform: translateX(-100%); }
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
     }
 
     /* Cyber Theme UI */
     .stApp { background: #050505; color: #00FFC3; }
     
-    /* Fixed WhatsApp Floating Button */
     .whatsapp-btn { 
         position: fixed; bottom: 30px; right: 30px; background-color: #25d366; 
         color: white !important; padding: 15px 25px; border-radius: 50px; 
@@ -57,25 +61,26 @@ st.markdown("""
     .stButton>button { border: 1px solid #00FFC3; background: transparent; color: #00FFC3; width: 100%; }
     .stButton>button:hover { background: #00FFC3; color: black !important; }
     
-    /* Trending Item Design */
     .trending-box { background: rgba(0, 255, 195, 0.1); padding: 10px; border-radius: 8px; border: 1px solid #00FFC3; margin-bottom: 5px; font-size: 14px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- MOVING TAGLINE ---
-st.markdown("""
+# --- SEAMLESS MOVING TAGLINE ---
+# Note: Text ko repeat kiya hai seamless effect ke liye
+tagline_html = """
     <div class="marquee-container">
-        <div class="marquee-text">
-            🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... kyunki hum kar rahe hain ROOM-TO-ROOM Delivery! 🚀 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ⚡ Patel Bhavan Mart: Fastest in the Campus! ⚡ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 📦 Fresh Snacks & Drinks Delivered in 5-7 Mins! 📦
+        <div class="marquee-content">
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... kyunki hum kar rahe hain ROOM-TO-ROOM Delivery! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Bhavan Mart: Fastest in the Campus! ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5-7 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... kyunki hum kar rahe hain ROOM-TO-ROOM Delivery! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Bhavan Mart: Fastest in the Campus! ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5-7 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+"""
+st.markdown(tagline_html, unsafe_allow_html=True)
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.title("🛠️ Manager Console")
     pwd = st.text_input("Manager Password", type="password")
-    
     if pwd == "Patel123":
         st.success("Manager Mode Active ✅")
         try:
@@ -88,31 +93,19 @@ with st.sidebar:
                 supabase.table("inventory").update({"Price": n_p, "Stock": n_s}).eq("Name", sel_name).execute()
                 st.rerun()
         except: st.error("DB Error")
-    
     st.divider()
-    
-    # Leaderboard ki jagah "Live Trending"
-    st.subheader("🔥 Trending Right Now")
-    st.markdown("""
-    <div class="trending-box">🍿 <b>Lays Magic Masala</b> - 14 orders</div>
-    <div class="trending-box">🍫 <b>Oreo Chocolate</b> - 8 orders</div>
-    <div class="trending-box">🥤 <b>Sting Energy</b> - 22 orders</div>
-    """, unsafe_allow_html=True)
+    st.subheader("🔥 Trending Today")
+    st.markdown('<div class="trending-box">🍿 <b>Lays Magic Masala</b> - Trending</div>', unsafe_allow_html=True)
+    st.markdown('<div class="trending-box">🥤 <b>Sting Energy</b> - Fast Selling</div>', unsafe_allow_html=True)
 
-    st.divider()
-    st.caption("v2.0 - Developed for Patel Bhavan")
-
-# --- WHATSAPP REDIRECT FIX (Yahan apna number daalo) ---
-# Replace '919876543210' with your actual number
+# --- WHATSAPP SUPPORT (Number: 8864810011) ---
 whatsapp_url = "https://wa.me/918864810011?text=Bhai%20ek%20help%20chahiye%20Patel%20Mart%20se"
 st.markdown(f'<a href="{whatsapp_url}" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
 # --- MAIN CONTENT ---
 col_h1, col_h2 = st.columns([3, 1])
-with col_h1:
-    st.title("🛍️ Patel Bhavan Mart")
-with col_h2:
-    search = st.text_input("🔍 Search snacks...")
+with col_h1: st.title("🛍️ Patel Bhavan Mart")
+with col_h2: search = st.text_input("🔍 Search snacks...")
 
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
 selected_cat = st.segmented_control("Categories", options=cats, default="All")
@@ -124,7 +117,6 @@ with col_inv:
         db_query = supabase.table("inventory").select("*")
         if search: db_query = db_query.ilike("Name", f"%{search}%")
         if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
-        
         data = db_query.execute().data
         grid = st.columns(2)
         for idx, item in enumerate(data or []):
@@ -172,10 +164,10 @@ with col_checkout:
                     for name, d in st.session_state.cart.items():
                         new_s = d['s'] - d['qty']
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", d['id']).execute()
-                    notify(f"🚀 *ORDER!*\nName: {n}\nRoom: {r}\nItems:\n{order_list}\nTotal: ₹{grand_total}")
+                    notify(f"🚀 *NEW ORDER!*\nName: {n}\nRoom: {r}\nItems:\n{order_list}\nTotal: ₹{grand_total}")
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success("ORDER EXECUTED!")
+                    st.success("ORDER PLACED!")
                     time.sleep(2)
                     st.rerun()
                 except: st.error("Database Error!")
