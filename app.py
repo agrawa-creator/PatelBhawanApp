@@ -15,20 +15,59 @@ def send_telegram_msg(msg):
     f_url = f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}&parse_mode=Markdown"
     requests.get(f_url)
 
+# --- SESSION STATE FOR CART ---
+if 'cart' not in st.session_state:
+    st.session_state.cart = {}
+
 # UI Setup
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# Custom CSS for Aesthetic Look (Fixed the error here)
+# Aesthetic CSS
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 20px; background-color: #00CC66; color: white; }
-    .stExpander { border: 1px solid #f0f2f6; border-radius: 10px; }
-    .save-text { color: #00CC66; font-weight: bold; font-size: 14px; }
+    .stButton>button { width: 100%; border-radius: 10px; font-weight: bold; }
+    .save-badge { background-color: #e6fffa; color: #00875a; padding: 5px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+    .cart-box { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #00CC66; }
     </style>
     """, unsafe_allow_html=True)
 
+# --- SIDEBAR CART SYSTEM ---
+with st.sidebar:
+    st.title("🛒 Your Cart")
+    if not st.session_state.cart:
+        st.write("Cart khali hai bhai! Kuch le lo.")
+    else:
+        total_bill = 0
+        cart_summary = ""
+        for item_name, details in list(st.session_state.cart.items()):
+            subtotal = details['price'] * details['qty']
+            total_bill += subtotal
+            st.markdown(f"**{item_name}** (x{details['qty']}) - ₹{subtotal}")
+            cart_summary += f"• {item_name} (x{details['qty']}) - ₹{subtotal}\n"
+            if st.button(f"Remove {item_name}", key=f"remove_{item_name}"):
+                del st.session_state.cart[item_name]
+                st.rerun()
+        
+        st.markdown("---")
+        st.subheader(f"Total: ₹{total_bill}")
+        
+        # Checkout Form in Sidebar
+        room = st.text_input("Room No", placeholder="e.g. 101")
+        phone = st.text_input("Phone", placeholder="Mobile number")
+        
+        if st.button("🚀 PLACE ORDER"):
+            if room and phone and st.session_state.cart:
+                final_msg = f"🔥 *NAYA CART ORDER!*\n\n📍 *Room:* {room}\n📞 *Phone:* {phone}\n\n*Items:*\n{cart_summary}\n💰 *FINAL BILL: ₹{total_bill}*"
+                send_telegram_msg(final_msg)
+                st.session_state.cart = {} # Clear cart
+                st.balloons()
+                st.success("Order ho gaya! Telegram par check kar.")
+                st.rerun()
+            else:
+                st.error("Details bharo!")
+
+# --- MAIN PAGE ---
 st.title("🛒 Patel Bhavan Mart")
-st.subheader("Fastest Delivery in the Hostel! 🔥")
 st.markdown("---")
 
 try:
@@ -36,51 +75,32 @@ try:
     items = response.data
 
     if not items:
-        st.warning("Bhai, Table khali hai! Supabase mein data bharo.")
+        st.warning("Inventory khali hai!")
     else:
         cols = st.columns(3)
         for i, item in enumerate(items):
             with cols[i % 3]:
-                # Data Extraction
+                # Data
                 img = item.get('image url', 'https://via.placeholder.com/150')
-                name = item.get('Name', 'Unknown Item')
+                name = item.get('Name', 'Item')
                 mrp = int(item.get('MRP', 0))
                 price = int(item.get('Price', 0))
-                savings = mrp - price
                 
-                # Aesthetic Display
+                # Display
                 st.image(img, use_container_width=True)
                 st.subheader(name)
                 st.write(f"~~MRP: ₹{mrp}~~ | **Price: ₹{price}**")
                 
-                if savings > 0:
-                    st.markdown(f"<p class='save-text'>✅ You save ₹{savings} on this item!</p>", unsafe_allow_html=True)
+                # Savings
+                if mrp > price:
+                    st.markdown(f"<span class='save-badge'>You Save ₹{mrp-price}!</span>", unsafe_allow_html=True)
                 
-                # Order Section with Quantity
-                with st.expander(f"Order {name}"):
-                    qty = st.number_input("How many?", min_value=1, max_value=10, value=1, key=f"qty_{i}")
-                    total_bill = price * qty
-                    st.write(f"**Total Bill: ₹{total_bill}**")
-                    
-                    room = st.text_input("Room Number", key=f"room_{i}", placeholder="e.g. 101")
-                    phone = st.text_input("Mobile Number", key=f"phone_{i}", placeholder="e.g. 9876543210")
-                    
-                    if st.button(f"Confirm {qty} {name}", key=f"btn_{i}"):
-                        if room and phone:
-                            # Telegram Message
-                            order_msg = f"🚀 *NAYA ORDER!*\n\n" \
-                                        f"📦 *Item:* {name}\n" \
-                                        f"🔢 *Quantity:* {qty}\n" \
-                                        f"📍 *Room:* {room}\n" \
-                                        f"📞 *Phone:* {phone}\n" \
-                                        f"💰 *Total Bill:* ₹{total_bill}\n\n" \
-                                        f"Bhai jaldi nikal ja! 🏃‍♂️💨"
-                            
-                            send_telegram_msg(order_msg)
-                            st.balloons()
-                            st.success(f"Order Done! Total: ₹{total_bill}. Milte hain room {room} par!")
-                        else:
-                            st.error("Bhai details toh bharo!")
+                # Add to Cart Logic
+                qty = st.number_input("Qty", min_value=1, max_value=10, key=f"q_{i}")
+                if st.button(f"➕ Add to Cart", key=f"add_{i}"):
+                    st.session_state.cart[name] = {'price': price, 'qty': qty}
+                    st.toast(f"{name} cart mein add ho gaya!")
+                    st.rerun()
 
 except Exception as e:
     st.error(f"Error: {e}")
