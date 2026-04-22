@@ -2,41 +2,38 @@ import streamlit as st
 from supabase import create_client
 import requests
 
-# 1. Supabase aur Telegram ki details (Tujhe ye Supabase settings se milengi)
+# 1. URL aur Key (Check karna quotes ke andar sahi hain na)
 url = "https://tmwolhvzosjcegjmirrh.supabase.co/rest/v1/"
 key = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(url, key)
 
-TELEGRAM_TOKEN = "TERA_BOT_TOKEN"
-CHAT_ID = "TERI_CHAT_ID"
-
-def send_notif(msg):
-    f_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}"
-    requests.get(f_url)
-
-# 2. UI Design
-st.set_page_config(page_title="Patel Bhavan Marg", layout="wide")
+st.set_page_config(page_title="Patel Bhavan Mart", layout="wide")
 st.title("🛒 Patel Bhavan Mart - Quick Delivery")
 
-# 3. Items Fetch Karna
-# Is line ko mita kar niche wali line likh do
-items = supabase.table("inventory").select("*").execute()
-# 4. Items Display (Aesthetic Grid)
-cols = st.columns(3)
-for i, item in enumerate(items.data):
-    with cols[i % 3]:
-        st.image(item['image_url'], use_column_width=True)
-        st.subheader(f"{item['name']}")
-        st.write(f"~~MRP: ₹{item['mrp']}~~ | **Price: ₹{item['price']}**")
-        
-        # Order Form
-        with st.expander(f"Order {item['name']}"):
-            room = st.text_input("Room No.", key=f"room_{item['id']}")
-            qty = st.number_input("Quantity", min_value=1, key=f"qty_{item['id']}")
-            if st.button("Confirm Order", key=f"btn_{item['id']}"):
-                if room:
-                    msg = f"🚀 *NAYA ORDER!*\n\n📍 Room: {room}\n📦 Item: {item['name']}\n🔢 Qty: {qty}\n💰 Total: ₹{int(item['price'])*qty}"
-                    send_notif(msg)
-                    st.success("Bhai order aa gaya! 5 min mein milte hain.")
-                else:
-                    st.error("Room Number toh daal de bhai!")
+# 2. Table Fetch (Yahan hum try-except laga rahe hain taaki error dikhe)
+try:
+    # AGAR TABLE KA NAAM CAPITAL 'I' HAI TOH YAHAN BHI 'Inventory' KAR DENA
+    response = supabase.table("inventory").select("*").execute()
+    items = response.data
+
+    if not items:
+        st.warning("Bhai, Supabase ki table mein koi item toh daal de! Table khali hai.")
+    else:
+        cols = st.columns(3)
+        for i, item in enumerate(items):
+            with cols[i % 3]:
+                # Check karna ki column ke naam 'image_url', 'name', 'price' hi hain
+                st.image(item.get('image_url', 'https://via.placeholder.com/150'), use_container_width=True)
+                st.subheader(item.get('name', 'No Name'))
+                st.write(f"**Price: ₹{item.get('price', 0)}**")
+                
+                with st.expander(f"Order {item.get('name')}"):
+                    room = st.text_input("Room No", key=f"room_{i}")
+                    if st.button("Confirm", key=f"btn_{i}"):
+                        if room:
+                            st.success(f"Order Done! Room {room}")
+                            # Telegram wala part baad mein sahi karenge, pehle app load hone de
+                        else:
+                            st.error("Room No?")
+except Exception as e:
+    st.error(f"Supabase se connection nahi ho raha. Error: {e}")
