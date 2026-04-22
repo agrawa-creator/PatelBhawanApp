@@ -1,6 +1,7 @@
 import streamlit as st
 from supabase import create_client
 import requests
+import time
 
 # --- CONFIG ---
 url = "https://tmwolhvzosjcegjmirrh.supabase.co"
@@ -13,146 +14,123 @@ CHAT_ID = "7261699388"
 
 def send_telegram_msg(msg):
     f_url = f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage?chat_id={CHAT_ID}&text={msg}&parse_mode=Markdown"
-    requests.get(f_url)
+    try: requests.get(f_url)
+    except: pass
 
-# --- SESSION STATE FOR CART ---
+# --- SESSION STATE ---
 if 'cart' not in st.session_state:
     st.session_state.cart = {}
+if 'order_success' not in st.session_state:
+    st.session_state.order_success = False
 
 # UI Setup
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# --- CUSTOM CSS FOR PREMIUM LOOK ---
+# --- CSS FOR HEADER & CART ---
 st.markdown("""
     <style>
-    /* Main Background and Title */
-    .main { background-color: #fcfcfc; }
-    h1 { color: #1E1E1E; font-family: 'Helvetica Neue', sans-serif; }
-    
-    /* Product Card Styling */
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        border: none;
-        height: 3em;
-        transition: 0.3s;
-    }
-    .stButton>button:hover {
-        background-color: #00CC66;
+    .cart-counter {
+        background-color: #FF4B4B;
         color: white;
-        transform: scale(1.02);
-    }
-    
-    /* Savings Badge */
-    .save-badge {
-        background-color: #D4EDDA;
-        color: #155724;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 50px;
         font-weight: bold;
-        display: inline-block;
-        margin-bottom: 10px;
+        font-size: 20px;
+        float: right;
     }
-    
-    /* Sidebar Styling */
-    .css-1d391kg { background-color: #ffffff; border-left: 1px solid #eee; }
-    .cart-header { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 20px; }
+    .save-badge {
+        background-color: #28a745;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR CART SYSTEM ---
+# --- HEADER WITH CART COUNT ---
+total_items_in_cart = sum(item['qty'] for item in st.session_state.cart.values())
+
+col_t1, col_t2 = st.columns([4, 1])
+with col_t1:
+    st.title("🛍️ Patel Bhavan Mart")
+with col_t2:
+    # Ye upar arrow ke paas cart aur quantity dikhayega
+    st.markdown(f"<div class='cart-counter'>🛒 {total_items_in_cart}</div>", unsafe_allow_html=True)
+
+st.caption("Fresh items, Delivered in minutes to your room.")
+
+# --- SUCCESS POPUP ---
+if st.session_state.order_success:
+    st.balloons()
+    st.snow()
+    st.success("### 🎉 ORDER PLACED SUCCESSFULLY!")
+    time.sleep(3)
+    st.session_state.order_success = False
+    st.rerun()
+
+# --- SIDEBAR (CHECKOUT) ---
 with st.sidebar:
-    st.markdown("<div class='cart-header'>🛒 My Basket</div>", unsafe_allow_html=True)
-    
+    st.markdown("## 🛒 My Basket")
+    st.divider()
     if not st.session_state.cart:
-        st.info("Bhai, cart khali hai. Kuch tasty add karo! 😋")
+        st.info("Basket khali hai bhai! 😋")
     else:
         total_bill = 0
-        cart_details_msg = ""
-        
-        for item_name, details in list(st.session_state.cart.items()):
-            subtotal = details['price'] * details['qty']
-            total_bill += subtotal
-            
-            # Individual Cart Item Row
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"**{item_name}**\n{details['qty']} x ₹{details['price']}")
-            with col2:
-                if st.button("❌", key=f"del_{item_name}"):
-                    del st.session_state.cart[item_name]
-                    st.rerun()
-            
-            cart_details_msg += f"• {item_name} (x{details['qty']}) - ₹{subtotal}\n"
-            st.markdown("---")
-        
-        # Total and Checkout
-        st.markdown(f"### Total Bill: `₹{total_bill}`")
-        
-        st.subheader("📍 Delivery Details")
-        room_no = st.text_input("Room No.", placeholder="Ex: 102")
-        phone_no = st.text_input("Mobile No.", placeholder="Ex: 9876XXXXXX")
-        
-        if st.button("🚀 Confirm Order"):
-            if room_no and phone_no:
-                order_summary = f"📦 *NEW ORDER - Patel Bhavan Mart*\n\n" \
-                                f"👤 *Customer:* {phone_no}\n" \
-                                f"🏢 *Room:* {room_no}\n\n" \
-                                f"*Items:*\n{cart_details_msg}\n" \
-                                f"💰 *Final Amount:* ₹{total_bill}\n\n" \
-                                f"jaldi delivery de do! 🔥"
-                
-                send_telegram_msg(order_summary)
-                st.session_state.cart = {} # Clear Cart
-                st.balloons()
-                st.success("Success! Order placed.")
+        summary = ""
+        for name, d in list(st.session_state.cart.items()):
+            sub = d['price'] * d['qty']
+            total_bill += sub
+            c1, c2 = st.columns([4, 1])
+            c1.markdown(f"**{name}**\n{d['qty']} x ₹{d['price']} = ₹{sub}")
+            if c2.button("🗑️", key=f"del_{name}"):
+                del st.session_state.cart[name]
                 st.rerun()
-            else:
-                st.warning("Please fill Room and Phone details.")
+            summary += f"• {name} (x{d['qty']}) - ₹{sub}\n"
+        
+        st.divider()
+        st.markdown(f"### Total: ₹{total_bill}")
+        r = st.text_input("📍 Room No.", key="room_input")
+        p = st.text_input("📞 Mobile No.", key="phone_input")
+        
+        if st.button("🚀 PLACE ORDER NOW"):
+            if r and p:
+                msg = f"📦 *NEW ORDER!*\n\n📍 *Room:* {r}\n📞 *Phone:* {p}\n\n*Items:*\n{summary}\n💰 *Total:* ₹{total_bill}"
+                send_telegram_msg(msg)
+                st.session_state.cart = {}
+                st.session_state.order_success = True
+                st.rerun()
 
-# --- MAIN PAGE ---
-st.markdown("# 🛍️ Patel Bhavan Mart")
-st.caption("Fresh items, Delivered in minutes to your room.")
-st.markdown("---")
-
+# --- MAIN INVENTORY ---
 try:
-    # Fetch Data
-    response = supabase.table("inventory").select("*").execute()
-    inventory_data = response.data
+    res = supabase.table("inventory").select("*").execute()
+    data = res.data
 
-    if not inventory_data:
-        st.write("Abhi shop band hai, thodi der mein aao! 👋")
+    if not data:
+        st.info("Stock khatam hai!")
     else:
-        # Display in 3 Columns
-        main_cols = st.columns(3)
-        for idx, item in enumerate(inventory_data):
-            with main_cols[idx % 3]:
-                # Extract Data
-                p_img = item.get('image url', 'https://via.placeholder.com/200')
-                p_name = item.get('Name', 'Mart Item')
-                p_mrp = int(item.get('MRP', 0))
-                p_price = int(item.get('Price', 0))
+        cols = st.columns(3)
+        for idx, item in enumerate(data):
+            with cols[idx % 3]:
+                st.image(item.get('image url'), use_container_width=True)
+                st.subheader(item.get('Name'))
                 
-                # Card UI
-                st.image(p_img, use_container_width=True)
-                st.markdown(f"### {p_name}")
-                
-                # Price Section
-                if p_mrp > p_price:
-                    st.markdown(f"<div class='save-badge'>SAVE ₹{p_mrp - p_price}</div>", unsafe_allow_html=True)
-                    st.write(f"~~₹{p_mrp}~~ **₹{p_price}**")
+                m, p = int(item.get('MRP', 0)), int(item.get('Price', 0))
+                if m > p:
+                    st.markdown(f"<span class='save-badge'>YOU SAVE ₹{m-p}</span>", unsafe_allow_html=True)
+                    st.write(f"~~₹{m}~~ **₹{p}**")
                 else:
-                    st.write(f"**Price: ₹{p_price}**")
+                    st.write(f"**₹{p}**")
                 
-                # Quantity and Add Button
-                selected_qty = st.number_input("Quantity", min_value=1, max_value=20, value=1, key=f"q_input_{idx}")
+                q = st.number_input("Qty", 1, 20, 1, key=f"q_{idx}")
                 
-                if st.button(f"🛒 Add to Basket", key=f"add_btn_{idx}"):
-                    st.session_state.cart[p_name] = {'price': p_price, 'qty': selected_qty}
-                    st.toast(f"✅ {p_name} added to basket!")
-                    # Small pause to let toast show, then rerun to update sidebar
+                if st.button(f"➕ Add to Basket", key=f"btn_{idx}"):
+                    # Update cart session
+                    st.session_state.cart[item.get('Name')] = {'price': p, 'qty': q}
+                    # Instant notification
+                    st.toast(f"✅ {q} {item.get('Name')} added to basket!", icon="🛒")
+                    time.sleep(0.1)
                     st.rerun()
 
-except Exception as error:
-    st.error(f"⚠️ Mart is facing an issue: {error}")
+except Exception as e:
+    st.error(f"Error: {e}")
