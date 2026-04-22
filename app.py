@@ -2,7 +2,6 @@ import streamlit as st
 from supabase import create_client
 import requests
 import time
-from datetime import datetime
 
 # --- CONFIG ---
 url = "https://tmwolhvzosjcegjmirrh.supabase.co"
@@ -19,15 +18,14 @@ def notify(msg):
         for cid in [CHAT_ID_1, CHAT_ID_2]:
             requests.post(f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage", 
                           data={"chat_id": cid, "text": msg, "parse_mode": "Markdown"})
-    except:
-        pass
+    except: pass
 
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 
-st.set_page_config(page_title="Patel Mart | Elite", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="Patel Bhavan Mart | Elite", layout="wide", page_icon="⚡")
 
-# --- CUSTOM NEON CSS ---
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
     .marquee-container {
@@ -35,7 +33,7 @@ st.markdown("""
         padding: 12px 0; border-radius: 12px; margin-bottom: 25px; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 15s linear infinite; }
-    .marquee-text { font-weight: bold; color: black; font-size: 18px; padding-right: 60px; }
+    .marquee-text { font-weight: bold; color: black; font-size: 18px; padding-right: 50px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
     .stApp { background: #050505; color: #00FFC3; }
@@ -54,17 +52,17 @@ st.markdown("""
     }
     
     .cart-entry { background-color: rgba(255, 255, 255, 0.05); border-left: 5px solid #00FFC3; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
-    .stButton>button { border: 1px solid #00FFC3; background: transparent; color: #00FFC3; width: 100%; border-radius: 10px; }
-    .stButton>button:hover { background: #00FFC3; color: black !important; box-shadow: 0 0 15px #00FFC3; }
+    .stButton>button { border: 1px solid #00FFC3; background: transparent; color: #00FFC3; width: 100%; }
+    .stButton>button:hover { background: #00FFC3; color: black !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- DYNAMIC TAGLINE ---
+# --- MOVING TAGLINE ---
 st.markdown("""
     <div class="marquee-container">
         <div class="marquee-content">
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 No Delivery Charges! 📦 &nbsp;&nbsp;&nbsp;</div>
-            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 No Delivery Charges! 📦 &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 Bhai, ab room se baahar jaane ki zaroorat nahi... ROOM-TO-ROOM Delivery is Live! 🚀 &nbsp;&nbsp;&nbsp; ⚡ Patel Mart: Fastest in Campus ⚡ &nbsp;&nbsp;&nbsp; 📦 Fresh Snacks Delivered in 5 Mins! 📦 &nbsp;&nbsp;&nbsp;</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -74,29 +72,41 @@ with st.sidebar:
     st.title("🛠️ Manager Console")
     pwd = st.text_input("Password", type="password")
     if pwd == "Patel123":
-        st.success("Authorized ✅")
+        st.success("Manager Mode Active ✅")
         try:
             items_data = supabase.table("inventory").select("*").execute().data
-            sel = st.selectbox("Quick Update Stock", [i['Name'] for i in items_data])
-            curr = next(i for i in items_data if i['Name'] == sel)
-            ns = st.number_input("Set Stock", value=int(curr['Stock']))
-            if st.button("Save to DB"):
-                supabase.table("inventory").update({"Stock": ns}).eq("Name", sel).execute()
+            sel_name = st.selectbox("Quick Update", [i['Name'] for i in items_data])
+            curr = next(i for i in items_data if i['Name'] == sel_name)
+            n_p = st.number_input("New Price", value=int(curr['Price']))
+            n_s = st.number_input("New Stock", value=int(curr['Stock']))
+            if st.button("Update Database"):
+                supabase.table("inventory").update({"Price": n_p, "Stock": n_s}).eq("Name", sel_name).execute()
                 st.rerun()
-        except: st.error("Manager DB Connection Lost")
+        except: st.error("DB Error")
     st.divider()
-    st.caption("Patel Bhavan Mart v4.0")
+    st.info("Patel Mart v3.2")
 
-# --- WHATSAPP SUPPORT (Number: 8864810011) ---
-st.markdown('<a href="https://wa.me/918864810011?text=Bhai%20help%20chahiye" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
+# --- WHATSAPP (8864810011) ---
+st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
 # --- MAIN CONTENT ---
+col_h1, col_h2 = st.columns([3, 1])
+with col_h1: st.title("🛍️ Patel Bhavan Mart")
+with col_h2: search = st.text_input("🔍 Search...")
+
+# --- CATEGORY FILTER (Wapas Add Kiya) ---
+cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
+selected_cat = st.segmented_control("Categories", options=cats, default="All")
+
 col_inv, col_checkout = st.columns([2, 1])
 
 with col_inv:
-    st.title("🛍️ Inventory")
     try:
-        data = supabase.table("inventory").select("*").execute().data
+        db_query = supabase.table("inventory").select("*")
+        if search: db_query = db_query.ilike("Name", f"%{search}%")
+        if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
+        
+        data = db_query.execute().data
         grid = st.columns(2)
         for idx, item in enumerate(data or []):
             with grid[idx % 2]:
@@ -104,41 +114,41 @@ with col_inv:
                     st.image(item.get('image url'), use_container_width=True)
                     st.subheader(item.get('Name'))
                     p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
-                    st.write(f"Price: ₹{p}")
+                    st.write(f"Price: ₹{p} | Stock: {s}")
+                    
                     if s > 0:
                         if s <= 3: st.markdown(f"<p class='urgency-blink'>🔥 ONLY {s} LEFT!</p>", unsafe_allow_html=True)
-                        else: st.caption(f"In Stock: {s}")
-                        
-                        if st.button(f"Add to Basket", key=f"add_{item['id']}"):
-                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': p, 's': s}
+                        qty = st.number_input("Qty", 1, s, 1, key=f"q_{item['id']}")
+                        if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
+                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': p, 's': s}
                             st.toast(f"✅ {item['Name']} added!")
-                            time.sleep(0.4)
+                            time.sleep(0.5)
                             st.rerun()
                     else: st.error("Out of Stock")
-    except Exception as e: st.error(f"Inventory Error: {e}")
+    except Exception as e: st.error(f"Error: {e}")
 
 with col_checkout:
     st.subheader("🧺 My Basket")
     if not st.session_state.cart:
-        st.info("Basket khali hai...")
+        st.info("Buffer Empty...")
     else:
-        total = 0
-        order_sum = ""
+        grand_total = 0
+        order_list = ""
         for name, d in list(st.session_state.cart.items()):
             sub = d['price'] * d['qty']
-            total += sub
-            order_sum += f"• {name} (x{d['qty']})\n"
-            st.markdown(f"<div class='cart-entry'><b>{name}</b><br>1 x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
+            grand_total += sub
+            order_list += f"• {name} (x{d['qty']})\n"
+            st.markdown(f"<div class='cart-entry'><b>{name}</b><br>{d['qty']} x ₹{d['price']} = ₹{sub}</div>", unsafe_allow_html=True)
             if st.button(f"Remove {name}", key=f"rm_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
 
         st.divider()
-        st.write(f"### TOTAL: ₹{total}")
-        n = st.text_input("👤 Name")
+        st.write(f"### TOTAL: ₹{grand_total}")
+        n = st.text_input("👤 Your Name")
         r = st.text_input("📍 Room No.")
         ph = st.text_input("📞 Mobile No.")
-        rt = st.select_slider("Rating", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
+        rt = st.select_slider("Rate us:", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
         
         if st.button("🚀 EXECUTE ORDER"):
             if n and r and ph:
@@ -147,11 +157,13 @@ with col_checkout:
                         new_s = d['s'] - d['qty']
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", d['id']).execute()
                     
-                    notify(f"🚀 *ORDER ALERT!*\n\n👤 *Name:* {n}\n📍 *Room:* {r}\n📞 *Phone:* {ph}\n🌟 *Rating:* {rt}\n\n📦 *Items:*\n{order_sum}\n💰 *Total:* ₹{total}")
+                    # Notify with Mobile + Rating
+                    notify(f"🚀 *NEW ORDER!*\n\n👤 *Name:* {n}\n📍 *Room:* {r}\n📞 *Phone:* {ph}\n🌟 *Rating:* {rt}\n\n📦 *Items:*\n{order_list}\n💰 *Total:* ₹{grand_total}")
+                    
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success("SUCCESS! watch the door in 5 mins.")
-                    time.sleep(3)
+                    st.success("ORDER PLACED! 5 mins mein milte hain.")
+                    time.sleep(2)
                     st.rerun()
-                except Exception as e: st.error(f"Checkout Error: {e}")
-            else: st.warning("Pehle saari details bharo bhai!")
+                except: st.error("DB Error!")
+            else: st.warning("Details bharo!")
