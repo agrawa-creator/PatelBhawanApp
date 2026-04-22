@@ -11,7 +11,7 @@ supabase = create_client(url, key)
 # --- DUAL TELEGRAM SETTINGS ---
 TELE_TOKEN = "7954541566:AAFdSIYkxCp1KYCZN3CFhj5Fd8TU89X6whs"
 CHAT_ID_1 = "7261699388"
-CHAT_ID_2 = "6927591741"
+CHAT_ID_2 = "7609324930"
 
 def send_dual_notifications(msg):
     ids = [CHAT_ID_1, CHAT_ID_2]
