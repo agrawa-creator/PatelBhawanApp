@@ -23,14 +23,14 @@ def notify(msg):
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 
-st.set_page_config(page_title="Patel BhaWan Mart", layout="wide", page_icon="🛒")
+st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# --- CSS UPDATES (Super Fast Speed) ---
+# --- CSS UPDATES (Super Fast Movement) ---
 st.markdown("""
     <style>
     .stApp { background-color: #0F1116; color: #E0E0E0; }
     
-    /* Super Fast Moving Tagline (Speed: 5s) */
+    /* Super Fast Movement Speed (3s) */
     .marquee-container {
         width: 100%; overflow: hidden; background: #1E2633;
         padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
@@ -39,9 +39,9 @@ st.markdown("""
     .marquee-content { 
         display: flex; 
         white-space: nowrap; 
-        animation: marquee 5s linear infinite; /* Speed set to 5 seconds */
+        animation: marquee 3s linear infinite; /* YAHAN SPEED 3 SECONDS HAI */
     }
-    .marquee-text { font-weight: bold; color: #3A8DFF; font-size: 16px; padding-right: 80px; }
+    .marquee-text { font-weight: bold; color: #3A8DFF; font-size: 16px; padding-right: 100px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
     /* Red Blinking Animation for Stock */
@@ -76,17 +76,17 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SUPER FAST TAGLINE ---
+# --- TAGLINE ---
 st.markdown("""
     <div class="marquee-container">
         <div class="marquee-content">
-            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡ &nbsp;&nbsp;</div>
-            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡ &nbsp;&nbsp;</div>
+            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡</div>
+            <div class="marquee-text">🚀 SUPERFAST DELIVERY ACTIVE! &nbsp;&nbsp; 📦 ROOM-TO-ROOM IN 5 MINS! &nbsp;&nbsp; ⚡ PATEL MART: THE CAMPUS LEADER! ⚡</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR ---
+# --- SIDEBAR & REST OF THE CODE ---
 with st.sidebar:
     st.title("🛠️ Manager")
     pwd = st.text_input("Password", type="password")
@@ -102,10 +102,8 @@ with st.sidebar:
                 st.rerun()
         except: st.error("DB Connection Issue")
 
-# --- WHATSAPP ---
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
-# --- MAIN ---
 st.title("🛍️ Patel Bhavan Mart")
 search = st.text_input("🔍 Search snacks...")
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Combos", "Others"]
