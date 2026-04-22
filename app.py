@@ -13,7 +13,7 @@ st.title("🛒 Patel Bhavan Mart - Quick Delivery")
 # 2. Table Fetch (Yahan hum try-except laga rahe hain taaki error dikhe)
 try:
     # AGAR TABLE KA NAAM CAPITAL 'I' HAI TOH YAHAN BHI 'Inventory' KAR DENA
-    response = supabase.table("inventory").select("*").execute()
+    response = supabase.table("Inventory").select("*").execute()
     items = response.data
 
     if not items:
