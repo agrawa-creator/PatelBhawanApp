@@ -23,7 +23,7 @@ def notify(msg):
 # --- SESSION STATE ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 
-st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
+st.set_page_config(page_title="Patel Bhawan Mart", layout="wide", page_icon="🛒")
 
 # --- CSS UPDATES (Full Width Movement) ---
 st.markdown("""
