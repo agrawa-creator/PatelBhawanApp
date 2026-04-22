@@ -3,8 +3,8 @@ from supabase import create_client
 import requests
 
 # 1. Supabase aur Telegram ki details (Tujhe ye Supabase settings se milengi)
-url = "TERI_SUPABASE_URL"
-key = "TERI_SUPABASE_ANON_KEY"
+url = "https://tmwolhvzosjcegjmirrh.supabase.co/rest/v1/"
+key = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(url, key)
 
 TELEGRAM_TOKEN = "TERA_BOT_TOKEN"
