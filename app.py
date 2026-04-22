@@ -22,15 +22,33 @@ def notify(msg):
 if 'cart' not in st.session_state: st.session_state.cart = {}
 if 'shop_open' not in st.session_state: st.session_state.shop_open = True
 
-st.set_page_config(page_title="Patel Bhavan Mart | Pro", layout="wide", page_icon="🛒")
+st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# --- CUSTOM CSS ---
+# --- CSS FOR DARK MODE COMPATIBILITY & CLEAN CART ---
 st.markdown("""
     <style>
-    .stButton>button { border-radius: 8px; transition: 0.3s; font-weight: bold; }
-    .cart-item { background: #ffffff; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 5px solid #00CC66; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .delivery-tag { background: #fff3cd; color: #856404; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-    .shop-status-ui { font-size: 18px; font-weight: bold; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
+    /* Cart Item Styling - No more blank white boxes */
+    .cart-entry {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 12px;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .item-info {
+        color: inherit;
+    }
+    .delivery-tag { 
+        background: #FFD700; 
+        color: #000; 
+        padding: 2px 8px; 
+        border-radius: 5px; 
+        font-size: 11px; 
+        font-weight: bold; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -38,32 +56,25 @@ st.markdown("""
 with st.sidebar:
     st.title("🛠️ Manager Panel")
     pwd = st.text_input("Manager Password", type="password")
-    
     if pwd == "Patel123":
-        st.success("Access Granted! ✅")
-        st.session_state.shop_open = st.toggle("Open Shop for Business", value=st.session_state.shop_open)
-    
+        st.session_state.shop_open = st.toggle("Open Shop", value=st.session_state.shop_open)
     st.divider()
-    if st.session_state.shop_open:
-        st.markdown("<div style='background-color:#d4edda; color:#155724;' class='shop-status-ui'>🟢 SHOP STATUS: OPEN</div>", unsafe_allow_html=True)
-    else:
-        st.markdown("<div style='background-color:#f8d7da; color:#721c24;' class='shop-status-ui'>🔴 SHOP STATUS: CLOSED</div>", unsafe_allow_html=True)
-    st.info("Bhai, password sahi hone par hi tum shop band kar sakte ho.")
+    status_color = "green" if st.session_state.shop_open else "red"
+    st.markdown(f"<h3 style='color:{status_color}; text-align:center;'>SHOP {'OPEN' if st.session_state.shop_open else 'CLOSED'}</h3>", unsafe_allow_html=True)
 
-# --- HEADER & SEARCH ---
+# --- HEADER ---
 col_h1, col_h2 = st.columns([3, 1])
 with col_h1:
     st.title("🛍️ Patel Bhavan Mart")
-    st.caption("Premium Campus Delivery Service ⚡")
 with col_h2:
-    search = st.text_input("🔍 Search items...", placeholder="Oreo, Kurkure...")
+    search = st.text_input("🔍 Search snacks...")
 
-# --- CATEGORY FILTER ---
+# --- CATEGORY ---
 cats = ["All", "Snacks", "Drinks", "Biscuits", "Others"]
 selected_cat = st.segmented_control("Browse Categories", options=cats, default="All")
 
 if not st.session_state.shop_open:
-    st.warning("### 😴 Shop abhi band hai! Kal subah milte hain bhai.")
+    st.warning("### 😴 Shop abhi band hai! Kal milte hain.")
     st.stop()
 
 # --- MAIN LAYOUT ---
@@ -76,41 +87,29 @@ with col_items:
         if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
         
         items = db_query.execute().data
-        if not items:
-            st.warning("Bhai ye item toh list mein nahi hai!")
-        else:
-            grid = st.columns(2)
-            for idx, item in enumerate(items):
-                with grid[idx % 2]:
-                    with st.container(border=True):
-                        st.image(item.get('image url'), use_container_width=True)
-                        st.subheader(item.get('Name'))
-                        
-                        mrp = int(item.get('MRP', 0))
-                        price = int(item.get('Price', 0))
-                        stock = int(item.get('Stock', 0))
-                        
-                        st.write(f"~~₹{mrp}~~ | **₹{price}**")
-                        st.markdown("<span class='delivery-tag'>⏱️ FAST DELIVERY (5-7 MINS)</span>", unsafe_allow_html=True)
-                        
-                        if stock > 0:
-                            st.caption(f"Stock: {stock} units left")
-                            qty = st.number_input("Select Qty", 1, stock, 1, key=f"qty_{item['id']}")
-                            if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
-                                st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': price, 's': stock}
-                                st.toast(f"✅ {item['Name']} added!", icon="🚀")
-                                time.sleep(0.4)
-                                st.rerun()
-                        else:
-                            st.error("Out of Stock ❌")
-    except Exception as e: st.error(f"Error fetching inventory: {e}")
+        grid = st.columns(2)
+        for idx, item in enumerate(items):
+            with grid[idx % 2]:
+                with st.container(border=True):
+                    st.image(item.get('image url'), use_container_width=True)
+                    st.subheader(item.get('Name'))
+                    mrp, price, stock = int(item.get('MRP', 0)), int(item.get('Price', 0)), int(item.get('Stock', 0))
+                    st.write(f"~~₹{mrp}~~ | **₹{price}**")
+                    st.markdown("<span class='delivery-tag'>⏱️ 5 MINS</span>", unsafe_allow_html=True)
+                    if stock > 0:
+                        qty = st.number_input("Qty", 1, stock, 1, key=f"q_{item['id']}")
+                        if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
+                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': price, 's': stock}
+                            st.toast(f"✅ {item['Name']} added!")
+                            time.sleep(0.5)
+                            st.rerun()
+                    else: st.error("Out of Stock")
+    except Exception as e: st.error(f"Error: {e}")
 
 with col_checkout:
-    st.markdown("<div style='background-color:white; padding:15px; border-radius:15px; border:1px solid #ddd;'>", unsafe_allow_html=True)
     st.subheader("🧺 Checkout Basket")
-    
     if not st.session_state.cart:
-        st.info("Basket khali hai bhai! Kuch add toh karo.")
+        st.info("Basket khali hai!")
     else:
         grand_total = 0
         order_list = ""
@@ -119,51 +118,37 @@ with col_checkout:
             grand_total += sub
             order_list += f"• {name} (x{d['qty']})\n"
             
-            st.markdown(f"<div class='cart-item'><b>{name}</b><br>{d['qty']} x ₹{d['price']} = <b>₹{sub}</b></div>", unsafe_allow_html=True)
-            if st.button("🗑️ Remove", key=f"rm_{name}"):
+            # --- IMPROVED CART ITEM UI ---
+            st.markdown(f"""
+                <div class="cart-entry">
+                    <div class="item-info">
+                        <b>{name}</b><br>
+                        <small>{d['qty']} x ₹{d['price']} = ₹{sub}</small>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"🗑️ Remove {name}", key=f"rm_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
 
         st.divider()
-        st.write(f"### Grand Total: ₹{grand_total}")
-        st.info("💳 Pay via UPI/Cash on Delivery")
+        st.write(f"### Total: ₹{grand_total}")
+        c_name = st.text_input("👤 Name")
+        c_room = st.text_input("📍 Room")
+        c_phone = st.text_input("📞 Phone")
+        rating = st.select_slider("Rate Service", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
         
-        # CUSTOMER DETAILS
-        c_name = st.text_input("👤 Your Full Name")
-        c_room = st.text_input("📍 Room No.")
-        c_phone = st.text_input("📞 Mobile No.")
-        
-        # THE RATING SLIDER (Wapas add kar diya bhai!)
-        st.write("---")
-        st.write("🌟 **Rate your experience:**")
-        rating = st.select_slider("How much do you like us?", options=["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"], value="⭐⭐⭐⭐⭐")
-        
-        if st.button("🚀 PLACE ORDER NOW"):
+        if st.button("🚀 PLACE ORDER"):
             if c_name and c_room and c_phone:
                 try:
-                    # Update Stock in Supabase
                     for name, d in st.session_state.cart.items():
-                        new_val = d['s'] - d['qty']
-                        supabase.table("inventory").update({"Stock": new_val}).eq("id", d['id']).execute()
-                    
-                    # Notify Telegram
-                    msg = f"🔔 *NAYA ORDER AAYA HAI!*\n\n" \
-                          f"👤 *Customer:* {c_name}\n" \
-                          f"📍 *Room:* {c_room}\n" \
-                          f"📞 *Phone:* {c_phone}\n" \
-                          f"🌟 *Rating:* {rating}\n\n" \
-                          f"*Items List:*\n{order_list}\n" \
-                          f"💰 *Total Amount:* ₹{grand_total}\n\n" \
-                          f"Bhai delivery ke liye taiyar ho jao! 🔥"
-                    
+                        supabase.table("inventory").update({"Stock": d['s'] - d['qty']}).eq("id", d['id']).execute()
+                    msg = f"🚀 *ORDER BY {c_name}*\nRoom: {c_room}\nPhone: {c_phone}\nRating: {rating}\nItems:\n{order_list}\nTotal: ₹{grand_total}"
                     notify(msg)
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success(f"Dhande ki jai ho! Order confirm ho gaya hai.")
-                    time.sleep(3)
+                    st.success("Order Placed!")
+                    time.sleep(2)
                     st.rerun()
-                except Exception as ex:
-                    st.error(f"Stock update error: {ex}")
-            else:
-                st.warning("Bhai sari details bharna zaroori hai!")
-    st.markdown("</div>", unsafe_allow_html=True)
+                except: st.error("Stock update error!")
+            else: st.warning("Details bharo!")
