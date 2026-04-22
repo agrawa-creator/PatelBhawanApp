@@ -82,7 +82,7 @@ with col_items:
                     
                     # --- STOCK DISPLAY LOGIC ---
                     if stock > 0:
-                        st.markdown(f"📦 <span class='stock-badge'>Bache hain: {stock}</span>", unsafe_allow_html=True)
+                        st.markdown(f"📦 <span class='stock-badge'>Remaning Stock: {stock}</span>", unsafe_allow_html=True)
                         qty = st.number_input("Qty", 1, stock, 1, key=f"q_{item['id']}")
                         if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
                             st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': qty, 'price': price, 's': stock}
