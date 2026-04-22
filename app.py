@@ -18,14 +18,14 @@ def send_telegram_msg(msg):
 # UI Setup
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# Custom CSS for Aesthetic Look
+# Custom CSS for Aesthetic Look (Fixed the error here)
 st.markdown("""
     <style>
     .stButton>button { width: 100%; border-radius: 20px; background-color: #00CC66; color: white; }
     .stExpander { border: 1px solid #f0f2f6; border-radius: 10px; }
     .save-text { color: #00CC66; font-weight: bold; font-size: 14px; }
     </style>
-    """, unsafe_allow_stdio=True)
+    """, unsafe_allow_html=True)
 
 st.title("🛒 Patel Bhavan Mart")
 st.subheader("Fastest Delivery in the Hostel! 🔥")
