@@ -4,7 +4,6 @@ import requests
 import time
 
 # --- CONFIG ---
-# Direct credentials for stability
 URL = "https://tmwolhvzosjcegjmirrh.supabase.co"
 KEY = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(URL, KEY)
@@ -14,20 +13,12 @@ TELE_TOKEN = "7954541566:AAFdSIYkxCp1KYCZN3CFhj5Fd8TU89X6whs"
 CHAT_ID_1 = "7261699388"
 CHAT_ID_2 = "7609324930"
 
-def notify_with_buttons(msg, phone, room):
-    reply_markup = {
-        "inline_keyboard": [
-            [{"text": "📞 Call Customer", "url": f"tel:{phone}"}],
-            [
-                {"text": "💰 Paid", "url": f"https://wa.me/918864810011?text=Room%20{room}%20Paid"},
-                {"text": "🚚 Delivered", "url": f"https://wa.me/918864810011?text=Room%20{room}%20Delivered"}
-            ]
-        ]
-    }
+def notify_simple(msg):
+    """Buttons hata diye, sirf simple message taaki 100% deliver ho"""
     for cid in [CHAT_ID_1, CHAT_ID_2]:
         try:
             requests.post(f"https://api.telegram.org/bot{TELE_TOKEN}/sendMessage", 
-                          json={"chat_id": cid, "text": msg, "parse_mode": "Markdown", "reply_markup": reply_markup})
+                          data={"chat_id": cid, "text": msg, "parse_mode": "Markdown"})
         except:
             pass
 
@@ -65,7 +56,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- TOP PROMO & TAGLINE ---
+# --- TOP PROMO ---
 st.markdown("""
     <div class="promo-box">
         <span style="color: #3A8DFF; font-weight: bold;">📢 ANNOUNCEMENT:</span> 
@@ -74,6 +65,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# --- SLOW TAGLINE ---
 tag_txt = "🚀 ROOM-TO-ROOM DELIVERY ACTIVE! &nbsp;&nbsp; 📦 PATEL MART SPEED ⚡ &nbsp;&nbsp; 🍕 SNACKS & DRINKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
@@ -110,11 +102,9 @@ col_inv, col_checkout = st.columns([2, 1])
 
 with col_inv:
     try:
-        # Stable data fetch
         res = supabase.table("inventory").select("*").execute()
         raw_data = res.data if res.data else []
         
-        # Manual filtering to avoid Supabase query errors
         display_data = raw_data
         if search:
             display_data = [i for i in display_data if search.lower() in str(i.get('Name', '')).lower()]
@@ -138,19 +128,14 @@ with col_inv:
                         if stock <= 3: 
                             st.markdown(f"<p class='urgency-blink'>🔥 ONLY {stock} LEFT!</p>", unsafe_allow_html=True)
                         if st.button(f"🛒 Add to Basket", key=f"btn_{item['id']}"):
-                            st.session_state.cart[item['Name']] = {
-                                'id': item['id'], 
-                                'qty': 1, 
-                                'price': price, 
-                                's': stock
-                            }
+                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': price, 's': stock}
                             st.toast(f"✅ {item['Name']} added")
                             time.sleep(0.2)
                             st.rerun()
                     else:
                         st.error("Out of Stock")
-    except Exception as e:
-        st.error("Error loading inventory. Please refresh.")
+    except:
+        st.error("Error loading inventory.")
 
 with col_checkout:
     st.subheader("🧺 My Basket")
@@ -177,21 +162,20 @@ with col_checkout:
         if st.button("🚀 CONFIRM ORDER"):
             if cust_name and cust_room and cust_phone:
                 try:
-                    # Update Stock
                     for name, info in st.session_state.cart.items():
                         new_s = max(0, info['s'] - 1)
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    # Notify Telegram
-                    order_msg = f"🚀 *NEW ORDER!*\n\n👤 *User:* {cust_name}\n📍 *Room:* {cust_room}\n📞 *Phone:* {cust_phone}\n📦 *Items:* {items_summary}\n💰 *Total:* ₹{total_bill}\n\n⚠️ *STATUS: PENDING*"
-                    notify_with_buttons(order_msg, cust_phone, cust_room)
+                    # Simple Telegram Message (Bulletproof)
+                    order_msg = f"🚀 NEW ORDER!\n\nName: {cust_name}\nRoom: {cust_room}\nPhone: {cust_phone}\nItems: {items_summary}\nTotal: ₹{total_bill}"
+                    notify_simple(order_msg)
                     
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success("Success! Order sent to Patel Mart.")
+                    st.success("Success! Order sent.")
                     time.sleep(2)
                     st.rerun()
                 except:
-                    st.error("Connection Error. Try again.")
+                    st.error("Database Error.")
             else:
                 st.warning("Please fill all details!")
