@@ -1,9 +1,3 @@
-Bhai, galti se mere pichle message mein code ke sabse niche kuch "prose" (meri boli hui baatein) bhi copy-paste ho gayi thi, jis wajah se Python ko SyntaxError aa gaya. Python un baaton ko code samajh raha tha.
-
-Maine use ekdum saaf kar diya hai. Bas ye pura code niche se copy karo aur purana wala delete karke ise dalo, ekdum makkhan chalega.
-
-Final Fixed Code (app.py):
-Python
 import streamlit as st
 from supabase import create_client
 import requests
