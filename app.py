@@ -32,20 +32,14 @@ if 'cart' not in st.session_state: st.session_state.cart = {}
 
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide")
 
-# --- CLEAN MATURE CSS ---
+# --- CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0E1117; color: #FFFFFF; }
-    
     .promo-box {
-        background-color: #1E2633; 
-        border-left: 5px solid #3A8DFF; 
-        padding: 12px; 
-        border-radius: 8px; 
-        margin-bottom: 15px;
-        text-align: center;
+        background-color: #1E2633; border-left: 5px solid #3A8DFF; 
+        padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: center;
     }
-
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
         padding: 10px 0; border-radius: 8px; margin-bottom: 20px;
@@ -54,16 +48,13 @@ st.markdown("""
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
     .marquee-text { font-weight: bold; color: #4682B4; font-size: 16px; padding-right: 50px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
     .urgency-blink { color: #FF4B4B; font-weight: bold; animation: blinker 1s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
-
     .whatsapp-btn { 
         position: fixed; bottom: 20px; right: 20px; background-color: #25D366; 
         color: white !important; padding: 10px 20px; border-radius: 30px; 
         font-weight: bold; z-index: 1000; text-decoration: none !important;
     }
-    
     .stButton>button { border-radius: 8px; width: 100%; }
     </style>
     """, unsafe_allow_html=True)
@@ -81,7 +72,7 @@ st.markdown("""
 tag_txt = "🚀 ROOM-TO-ROOM DELIVERY ACTIVE! &nbsp;&nbsp; 📦 PATEL MART SPEED ⚡ &nbsp;&nbsp; 🍕 SNACKS & DRINKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
-# --- SIDEBAR MANAGER ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.title("🛠️ Manager")
     pwd = st.text_input("Password", type="password")
@@ -94,12 +85,10 @@ with st.sidebar:
             if st.button("Save"):
                 supabase.table("inventory").update({"Stock": ns}).eq("Name", sel).execute()
                 st.rerun()
-        except: st.error("DB Error")
-    
+        except: st.error("DB Load Error")
     st.divider()
     st.subheader("🔗 Community")
     st.markdown("[Join WhatsApp Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
-    st.caption("v3.7 Mature Edition")
 
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
@@ -113,10 +102,9 @@ col_inv, col_checkout = st.columns([2, 1])
 
 with col_inv:
     try:
-        db_query = supabase.table("inventory").select("*")
-        if search: db_query = db_query.ilike("Name", f"%{search}%")
-        if selected_cat != "All": db_query = db_query.eq("Category", selected_cat)
-        data = db_query.execute().data
+        data = supabase.table("inventory").select("*").execute().data
+        if search: data = [i for i in data if search.lower() in i['Name'].lower()]
+        if selected_cat != "All": data = [i for i in data if i.get('Category') == selected_cat]
         
         grid = st.columns(2)
         for idx, item in enumerate(data or []):
@@ -134,7 +122,7 @@ with col_inv:
                             time.sleep(0.3)
                             st.rerun()
                     else: st.error("Out of Stock")
-    except: st.error("DB Load Error")
+    except: st.error("Database Load Error")
 
 with col_checkout:
     st.subheader("🧺 My Basket")
@@ -158,16 +146,7 @@ with col_checkout:
         if st.button("🚀 CONFIRM ORDER"):
             if n and r and ph:
                 try:
+                    # Update DB (Fixed Logic)
                     for name, d in st.session_state.cart.items():
-                        supabase.table("inventory").update({"Stock": d['s'] - 1}).eq("id", d['id']).execute()
-                    
-                    msg = f"🚀 *NEW ORDER!*\n\n👤 *User:* {n}\n📍 *Room:* {r}\n📞 *Phone:* {ph}\n📦 *Items:* {order_list}\n💰 *Total:* ₹{grand_total}\n\n⚠️ *STATUS: PENDING*"
-                    notify_with_buttons(msg, ph, r, grand_total)
-                    
-                    st.session_state.cart = {}
-                    st.balloons()
-                    st.success("Order Sent! 5 mins mein milte hain.")
-                    time.sleep(2)
-                    st.rerun()
-                except: st.error("Checkout Error!")
-            else: st.warning("Details bharo!")
+                        new_stock = max(0, d['s'] - 1)
+                        supabase
