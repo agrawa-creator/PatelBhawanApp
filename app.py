@@ -1,3 +1,7 @@
+Bhai, bilkul perfect! Maine WhatsApp group ka link update kar diya hai aur marquee ki speed ko thoda slow kar diya hai taaki bache use sukoon se padh sakein. Ab speed ekdum smooth aur professional lagegi.
+
+Updated Code (app.py):
+Python
 import streamlit as st
 from supabase import create_client
 import requests
@@ -47,13 +51,13 @@ st.markdown("""
         text-align: center;
     }
 
-    /* Fast Tagline */
+    /* Adjusted Tagline Speed (12s for smooth movement) */
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
         padding: 10px 0; border-radius: 8px; margin-bottom: 20px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
-    .marquee-content { display: flex; white-space: nowrap; animation: marquee 6s linear infinite; }
+    .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
     .marquee-text { font-weight: bold; color: #4682B4; font-size: 16px; padding-right: 50px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
@@ -70,15 +74,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- PROMO BOX (Option 3) ---
+# --- PROMO BOX ---
 st.markdown("""
     <div class="promo-box">
         <span style="color: #3A8DFF; font-weight: bold;">📢 ANNOUNCEMENT:</span> 
-        <span style="color: #E0E0E0;">Bhai, Exclusive Deals aur Stock Updates ke liye humara <b>WhatsApp Group</b> join karlo! Link Sidebar mein hai. 🔗</span>
+        <span style="color: #E0E0E0;">Bhai, Exclusive Deals aur Stock Updates ke liye humara <b>WhatsApp Group</b> join karlo! 🔗</span>
+        <br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: none; font-weight: bold;">👉 Click to Join Group</a>
     </div>
 """, unsafe_allow_html=True)
 
-# --- TAGLINE ---
+# --- TAGLINE (Slowed Down) ---
 tag_txt = "🚀 ROOM-TO-ROOM DELIVERY ACTIVE! &nbsp;&nbsp; 📦 PATEL MART SPEED ⚡ &nbsp;&nbsp; 🍕 SNACKS & DRINKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
@@ -99,9 +104,8 @@ with st.sidebar:
     
     st.divider()
     st.subheader("🔗 Community")
-    # Yahan apne WhatsApp group ka link daal dena
-    st.markdown("[Join WhatsApp Group](https://wa.me/918864810011)")
-    st.caption("v3.6 Mature Edition")
+    st.markdown("[Join WhatsApp Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
+    st.caption("v3.7 Mature Edition")
 
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Chat Support</a>', unsafe_allow_html=True)
 
@@ -173,3 +177,10 @@ with col_checkout:
                     st.rerun()
                 except: st.error("Checkout Error!")
             else: st.warning("Details bharo!")
+Bhai updates:
+
+Link Updated: Promo box aur Sidebar dono jagah naya link daal diya hai.
+
+Smooth Speed: Tagline ki speed 6s se badha kar 12s kar di hai, ab ye bahut mature aur readable tarike se move hogi.
+
+Ab ekdum set hai! 🚀🔥
