@@ -1,6 +1,8 @@
-Bhai, bilkul perfect! Maine WhatsApp group ka link update kar diya hai aur marquee ki speed ko thoda slow kar diya hai taaki bache use sukoon se padh sakein. Ab speed ekdum smooth aur professional lagegi.
+Bhai, galti se mere pichle message mein code ke sabse niche kuch "prose" (meri boli hui baatein) bhi copy-paste ho gayi thi, jis wajah se Python ko SyntaxError aa gaya. Python un baaton ko code samajh raha tha.
 
-Updated Code (app.py):
+Maine use ekdum saaf kar diya hai. Bas ye pura code niche se copy karo aur purana wala delete karke ise dalo, ekdum makkhan chalega.
+
+Final Fixed Code (app.py):
 Python
 import streamlit as st
 from supabase import create_client
@@ -41,7 +43,6 @@ st.markdown("""
     <style>
     .stApp { background-color: #0E1117; color: #FFFFFF; }
     
-    /* Promo Box Style */
     .promo-box {
         background-color: #1E2633; 
         border-left: 5px solid #3A8DFF; 
@@ -51,7 +52,6 @@ st.markdown("""
         text-align: center;
     }
 
-    /* Adjusted Tagline Speed (12s for smooth movement) */
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
         padding: 10px 0; border-radius: 8px; margin-bottom: 20px;
@@ -61,7 +61,7 @@ st.markdown("""
     .marquee-text { font-weight: bold; color: #4682B4; font-size: 16px; padding-right: 50px; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
-    .urgency-blink { color: #FF4B4B; font-weight: bold; animation: blinker 0.8s linear infinite; }
+    .urgency-blink { color: #FF4B4B; font-weight: bold; animation: blinker 1s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
 
     .whatsapp-btn { 
@@ -83,7 +83,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- TAGLINE (Slowed Down) ---
+# --- TAGLINE ---
 tag_txt = "🚀 ROOM-TO-ROOM DELIVERY ACTIVE! &nbsp;&nbsp; 📦 PATEL MART SPEED ⚡ &nbsp;&nbsp; 🍕 SNACKS & DRINKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
@@ -177,10 +177,3 @@ with col_checkout:
                     st.rerun()
                 except: st.error("Checkout Error!")
             else: st.warning("Details bharo!")
-Bhai updates:
-
-Link Updated: Promo box aur Sidebar dono jagah naya link daal diya hai.
-
-Smooth Speed: Tagline ki speed 6s se badha kar 12s kar di hai, ab ye bahut mature aur readable tarike se move hogi.
-
-Ab ekdum set hai! 🚀🔥
