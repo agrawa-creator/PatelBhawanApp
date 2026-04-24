@@ -149,7 +149,7 @@ with col_cart:
                         new_s = max(0, info['stock'] - info['qty'])
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    order_type = "🏠 SELF PICKUP (R-112)" if is_pickup else "🚚 HOME DELIVERY"
+                    order_type = "🏠 SELF PICKUP (R-112)" if is_pickup else "🚚 ROOM DELIVERY"
                     msg = f"🚀 *{order_type}!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {final_hostel}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
                     send_tele_msg(msg)
                     
