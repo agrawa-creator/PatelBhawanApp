@@ -22,7 +22,8 @@ def send_tele_msg(text):
 
 # --- 3. SESSION & PAGE SETUP ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
-if 'user_info' not in st.session_state: st.session_state.user_info = {"name": "", "room": "", "phone": "", "hostel": "Patel Bhavan"}
+if 'user_info' not in st.session_state: 
+    st.session_state.user_info = {"name": "", "room": "", "phone": "", "hostel": "Patel Bhavan", "other_hostel": ""}
 
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
@@ -36,7 +37,7 @@ st.markdown("""
     }
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
-        padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
+        padding: 10px 0; border-radius: 8px; margin-bottom: 20px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
@@ -48,13 +49,12 @@ st.markdown("""
         position: fixed; bottom: 30px; right: 30px; background-color: #25D366; 
         color: white !important; padding: 12px 25px; border-radius: 50px; 
         font-weight: bold; z-index: 1000; text-decoration: none !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .stButton>button { border-radius: 8px; width: 100%; transition: 0.3s; height: 3em; font-weight: bold; }
+    .stButton>button { border-radius: 8px; width: 100%; transition: 0.3s; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 5. TOP PROMO & TAGLINE ---
+# --- 5. TOP ANNOUNCEMENTS ---
 st.markdown("""
     <div class="promo-box">
         <span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span> 
@@ -80,10 +80,8 @@ with st.sidebar:
                 val = st.number_input("Update Stock", min_value=0, step=1)
                 if st.button("Save Inventory"):
                     supabase.table("inventory").update({"Stock": val}).eq("Name", sel).execute()
-                    st.success("Updated!")
-                    time.sleep(1)
                     st.rerun()
-        except: st.error("Sidebar Error")
+        except: st.sidebar.error("Error fetching items")
     st.divider()
     st.markdown("[Join WhatsApp Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
 
@@ -99,17 +97,16 @@ col_main, col_cart = st.columns([2, 1])
 
 with col_main:
     try:
+        # DB Safety Wrapper
         db_res = supabase.table("inventory").select("*").execute()
         raw_items = db_res.data if db_res.data else []
         
         filtered = raw_items
         if search_query:
             filtered = [x for x in filtered if search_query.lower() in str(x.get('Name','')).lower()]
-        if selected_cat != "All":
+        if selected_cat and selected_cat != "All":
             filtered = [x for x in filtered if x.get('Category') == selected_cat]
 
-        if not filtered: st.info("Item nahi mila bhai!")
-        
         grid = st.columns(2)
         for idx, item in enumerate(filtered):
             with grid[idx % 2]:
@@ -126,7 +123,7 @@ with col_main:
                             time.sleep(0.2)
                             st.rerun()
                     else: st.error("Out of Stock")
-    except: st.error("Database connection issue. Refresh please.")
+    except: st.error("Slow Connection. Refresh karo bhai!")
 
 # --- 8. CART & CHECKOUT ---
 with col_cart:
@@ -139,7 +136,7 @@ with col_cart:
         for name, info in list(st.session_state.cart.items()):
             subtotal = info['price'] * info['qty']
             total_bill += subtotal
-            order_details += f"{name} (x1), "
+            order_details += f"{name}, "
             st.write(f"**{name}** - ₹{subtotal}")
             if st.button("❌ Remove", key=f"del_{name}"):
                 del st.session_state.cart[name]
@@ -148,37 +145,36 @@ with col_cart:
         st.divider()
         st.write(f"### Total: ₹{total_bill}")
         
-        # Delivery Details
         st.subheader("📍 Delivery Address")
-        # Hostel List
         hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Tandon Bhavan", "Other"]
-        h_name = st.selectbox("Select Hostel", hostel_list)
+        h_choice = st.selectbox("Select Hostel", hostel_list)
         
-        # Name/Room memory logic
+        # OTHER HOSTEL LOGIC
+        final_hostel = h_choice
+        if h_choice == "Other":
+            final_hostel = st.text_input("Enter Hostel Name", placeholder="e.g. Raman Bhavan")
+        
         c_name = st.text_input("Name", value=st.session_state.user_info['name'])
         c_room = st.text_input("Room No.", value=st.session_state.user_info['room'])
         c_phone = st.text_input("Mobile No.", value=st.session_state.user_info['phone'])
         
         if st.button("🚀 CONFIRM ORDER"):
-            if c_name and c_room and c_phone:
-                # Update memory
-                st.session_state.user_info = {"name": c_name, "room": c_room, "phone": c_phone, "hostel": h_name}
-                
+            if c_name and c_room and c_phone and final_hostel:
+                st.session_state.user_info = {"name": c_name, "room": c_room, "phone": c_phone, "hostel": h_choice}
                 try:
                     for name, info in st.session_state.cart.items():
                         new_s = max(0, info['stock'] - 1)
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    # Notify Manager (Telegram)
-                    msg = f"🚀 *NEW ORDER!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {h_name}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
+                    # Notify with Full Info
+                    msg = f"🚀 *NEW ORDER!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {final_hostel}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
                     send_tele_msg(msg)
                     
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success(f"Order confirmed for {h_name}! Delivering in 10 mins.")
+                    st.success(f"Order Placed for {final_hostel}! Reaching in 10 mins.")
                     time.sleep(3)
                     st.rerun()
-                except:
-                    st.error("Error updating stock, but order sent!")
+                except: st.error("DB Update Error - Par Order Telegram pe chala gaya hai!")
             else:
-                st.warning("Please fill Name, Room, and Mobile!")
+                st.warning("Puri details bharo!")
