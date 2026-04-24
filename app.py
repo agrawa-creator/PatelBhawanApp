@@ -36,7 +36,7 @@ st.markdown("""
     }
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
-        padding: 12px 0; border-radius: 8px; margin-bottom: 25px;
+        padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
@@ -44,9 +44,7 @@ st.markdown("""
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     .urgency-blink { color: #FF4B4B; font-weight: bold; animation: blinker 1.2s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
-    .stButton>button { border-radius: 8px; width: 100%; transition: 0.3s; font-weight: bold; }
-    
-    /* MRP Style */
+    .pickup-note { background-color: #442222; border: 1px solid #FF4B4B; padding: 10px; border-radius: 5px; color: #FFD2D2; font-weight: bold; margin-bottom: 15px; }
     .mrp-text { color: #888888; text-decoration: line-through; font-size: 14px; margin-right: 8px; }
     .price-text { color: #25D366; font-size: 18px; font-weight: bold; }
     </style>
@@ -55,7 +53,7 @@ st.markdown("""
 # --- 5. TOP ANNOUNCEMENTS ---
 st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
 
-tag_txt = "🚀 FASTEST HOSTEL DELIVERY! &nbsp;&nbsp; 📦 NO MINIMUM ORDER &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
+tag_txt = "🚀 PATEL BHAVAN DELIVERY ONLY! &nbsp;&nbsp; 📦 OTHERS PICKUP FROM ROOM 112 &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
 # --- 6. DATA FETCH ---
@@ -88,34 +86,25 @@ with col_main:
                 st.image(item.get('image url', ''), use_container_width=True)
                 st.subheader(item.get('Name', 'Item'))
                 
-                # Handling MRP and Price
                 mrp = item.get('MRP', 0)
                 price = int(item.get('Price', 0))
                 stock = int(item.get('Stock', 0))
                 
-                # Visual Price Display
-                st.markdown(f'<div><span class="mrp-text">MRP ₹{mrp}</span><span class="price-text">Our Price ₹{price}</span></div>', unsafe_allow_html=True)
-                st.write(f"Stock Available: {stock}")
+                st.markdown(f'<div><span class="mrp-text">MRP ₹{mrp}</span><span class="price-text">Price ₹{price}</span></div>', unsafe_allow_html=True)
                 
                 if stock > 0:
-                    if stock <= 3: st.markdown(f"<p class='urgency-blink'>⚠️ Only {stock} left!</p>", unsafe_allow_html=True)
-                    
                     add_qty = st.number_input(f"Qty:", min_value=1, max_value=stock, value=1, key=f"qty_in_{item['id']}")
-                    
                     if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
                         if item['Name'] in st.session_state.cart:
-                            if st.session_state.cart[item['Name']]['qty'] + add_qty <= stock:
-                                st.session_state.cart[item['Name']]['qty'] += add_qty
-                            else:
-                                st.session_state.cart[item['Name']]['qty'] = stock
+                            st.session_state.cart[item['Name']]['qty'] = min(stock, st.session_state.cart[item['Name']]['qty'] + add_qty)
                         else:
                             st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': add_qty, 'price': price, 'stock': stock}
-                        st.toast(f"✅ Added {add_qty} {item['Name']}")
+                        st.toast(f"✅ Added {item['Name']}")
                         time.sleep(0.1)
                         st.rerun()
                 else: st.error("Out of Stock")
 
-# --- 8. CART & CHECKOUT ---
+# --- 8. CART & PICKUP LOGIC ---
 with col_cart:
     st.subheader("🧺 My Basket")
     if not st.session_state.cart:
@@ -127,7 +116,6 @@ with col_cart:
             subtotal = info['price'] * info['qty']
             total_bill += subtotal
             order_details += f"{name} (x{info['qty']}), "
-            
             with st.expander(f"📦 {name} (x{info['qty']}) - ₹{subtotal}", expanded=True):
                 if st.button(f"Remove Item", key=f"del_{name}"):
                     del st.session_state.cart[name]
@@ -136,12 +124,18 @@ with col_cart:
         st.divider()
         st.write(f"### Total Bill: ₹{total_bill}")
         
-        # Delivery Details
-        hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Tandon Bhavan", "Other"]
-        h_choice = st.selectbox("Select Hostel", hostel_list)
+        # Address Details
+        hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Other"]
+        h_choice = st.selectbox("Select Your Hostel", hostel_list)
+        
+        # PICKUP LOGIC
+        is_pickup = False
         final_hostel = h_choice
-        if h_choice == "Other":
-            final_hostel = st.text_input("Enter Hostel Name")
+        if h_choice != "Patel Bhavan":
+            is_pickup = True
+            if h_choice == "Other":
+                final_hostel = st.text_input("Hostel Ka Naam Likhein")
+            st.markdown('<div class="pickup-note">⚠️ Note: Is hostel mein delivery band hai. Order confirm karke Patel Bhavan, Room 112 se pickup kar lo.</div>', unsafe_allow_html=True)
         
         c_name = st.text_input("Name", value=st.session_state.user_info['name'])
         c_room = st.text_input("Room No.", value=st.session_state.user_info['room'])
@@ -155,12 +149,14 @@ with col_cart:
                         new_s = max(0, info['stock'] - info['qty'])
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    msg = f"🚀 *NEW ORDER!*\n👤 {c_name}\n🏢 {final_hostel}\n📍 Room: {c_room}\n📞 {c_phone}\n📦 {order_details}\n💰 Total: ₹{total_bill}"
+                    order_type = "🏠 SELF PICKUP (R-112)" if is_pickup else "🚚 HOME DELIVERY"
+                    msg = f"🚀 *{order_type}!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {final_hostel}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
                     send_tele_msg(msg)
+                    
                     st.session_state.cart = {}
                     st.balloons()
                     st.success("Order Placed Successfully!")
-                    time.sleep(2)
+                    time.sleep(3)
                     st.rerun()
-                except: st.error("Database sync delay, but manager notified!")
-            else: st.warning("Details bharo bhai!")
+                except: st.error("Error! But order sent to manager.")
+            else: st.warning("Saari details bharo bhai!")
