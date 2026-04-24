@@ -23,7 +23,7 @@ def send_tele_msg(text):
 # --- 3. SESSION & PAGE SETUP ---
 if 'cart' not in st.session_state: st.session_state.cart = {}
 if 'user_info' not in st.session_state: 
-    st.session_state.user_info = {"name": "", "room": "", "phone": "", "hostel": "Patel Bhavan", "other_hostel": ""}
+    st.session_state.user_info = {"name": "", "room": "", "phone": "", "hostel": "Patel Bhavan"}
 
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
@@ -37,7 +37,7 @@ st.markdown("""
     }
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
-        padding: 10px 0; border-radius: 8px; margin-bottom: 20px;
+        padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
@@ -58,15 +58,15 @@ st.markdown("""
 st.markdown("""
     <div class="promo-box">
         <span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span> 
-        <br><span style="color: #E0E0E0;">Bhaiyo, naya stock aa gaya hai! Exclusive deals ke liye WhatsApp join karo.</span>
+        <br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span>
         <br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a>
     </div>
 """, unsafe_allow_html=True)
 
 tag_txt = "🚀 FASTEST HOSTEL DELIVERY! &nbsp;&nbsp; 📦 NO MINIMUM ORDER &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
-st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
-# --- 6. SIDEBAR ---
+# --- 6. SIDEBAR MANAGER ---
 with st.sidebar:
     st.title("🛠️ Manager")
     pwd = st.text_input("Admin Key", type="password")
@@ -74,20 +74,19 @@ with st.sidebar:
         st.success("Authorized ✅")
         try:
             res = supabase.table("inventory").select("*").execute()
-            all_items = res.data if res.data else []
-            if all_items:
-                sel = st.selectbox("Stock Update", [i['Name'] for i in all_items])
+            if res.data:
+                sel = st.selectbox("Stock Update", [i['Name'] for i in res.data])
                 val = st.number_input("Update Stock", min_value=0, step=1)
                 if st.button("Save Inventory"):
                     supabase.table("inventory").update({"Stock": val}).eq("Name", sel).execute()
                     st.rerun()
-        except: st.sidebar.error("Error fetching items")
+        except: pass
     st.divider()
-    st.markdown("[Join WhatsApp Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
+    st.markdown("[Join Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
 
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Help & Support</a>', unsafe_allow_html=True)
 
-# --- 7. MAIN SHOP ---
+# --- 7. MAIN SHOP LOGIC ---
 st.title("🛍️ Patel Bhavan Mart")
 search_query = st.text_input("🔍 Search snacks, drinks...")
 cat_options = ["All", "Snacks", "Drinks", "Biscuits", "Others"]
@@ -95,35 +94,38 @@ selected_cat = st.segmented_control("Categories", options=cat_options, default="
 
 col_main, col_cart = st.columns([2, 1])
 
-with col_main:
-    try:
-        # DB Safety Wrapper
-        db_res = supabase.table("inventory").select("*").execute()
-        raw_items = db_res.data if db_res.data else []
-        
-        filtered = raw_items
-        if search_query:
-            filtered = [x for x in filtered if search_query.lower() in str(x.get('Name','')).lower()]
-        if selected_cat and selected_cat != "All":
-            filtered = [x for x in filtered if x.get('Category') == selected_cat]
+# Stable Data Fetching
+try:
+    res = supabase.table("inventory").select("*").execute()
+    raw_items = res.data if res.data else []
+except:
+    raw_items = []
+    st.error("Database refresh required.")
 
-        grid = st.columns(2)
-        for idx, item in enumerate(filtered):
-            with grid[idx % 2]:
-                with st.container(border=True):
-                    st.image(item.get('image url', ''), use_container_width=True)
-                    st.subheader(item.get('Name', 'Item'))
-                    p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
-                    st.write(f"Price: **₹{p}** | Stock: {s}")
-                    if s > 0:
-                        if s <= 3: st.markdown(f"<p class='urgency-blink'>⚠️ Only {s} left!</p>", unsafe_allow_html=True)
-                        if st.button(f"🛒 Add", key=f"btn_{item['id']}"):
-                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': p, 'stock': s}
-                            st.toast(f"✅ {item['Name']} added")
-                            time.sleep(0.2)
-                            st.rerun()
-                    else: st.error("Out of Stock")
-    except: st.error("Slow Connection. Refresh karo bhai!")
+with col_main:
+    # Python-based filtering (Zero Crashes)
+    filtered = raw_items
+    if search_query:
+        filtered = [x for x in filtered if search_query.lower() in str(x.get('Name','')).lower()]
+    if selected_cat and selected_cat != "All":
+        filtered = [x for x in filtered if x.get('Category') == selected_cat]
+
+    grid = st.columns(2)
+    for idx, item in enumerate(filtered):
+        with grid[idx % 2]:
+            with st.container(border=True):
+                st.image(item.get('image url', ''), use_container_width=True)
+                st.subheader(item.get('Name', 'Item'))
+                p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
+                st.write(f"Price: **₹{p}** | Stock: {s}")
+                if s > 0:
+                    if s <= 3: st.markdown(f"<p class='urgency-blink'>⚠️ Only {s} left!</p>", unsafe_allow_html=True)
+                    if st.button(f"🛒 Add", key=f"btn_{item['id']}"):
+                        st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': 1, 'price': p, 'stock': s}
+                        st.toast(f"✅ Added")
+                        time.sleep(0.1)
+                        st.rerun()
+                else: st.error("Out of Stock")
 
 # --- 8. CART & CHECKOUT ---
 with col_cart:
@@ -145,14 +147,13 @@ with col_cart:
         st.divider()
         st.write(f"### Total: ₹{total_bill}")
         
-        st.subheader("📍 Delivery Address")
+        # Delivery Details
         hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Tandon Bhavan", "Other"]
         h_choice = st.selectbox("Select Hostel", hostel_list)
         
-        # OTHER HOSTEL LOGIC
         final_hostel = h_choice
         if h_choice == "Other":
-            final_hostel = st.text_input("Enter Hostel Name", placeholder="e.g. Raman Bhavan")
+            final_hostel = st.text_input("Enter Hostel Name")
         
         c_name = st.text_input("Name", value=st.session_state.user_info['name'])
         c_room = st.text_input("Room No.", value=st.session_state.user_info['room'])
@@ -166,15 +167,12 @@ with col_cart:
                         new_s = max(0, info['stock'] - 1)
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    # Notify with Full Info
-                    msg = f"🚀 *NEW ORDER!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {final_hostel}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
+                    msg = f"🚀 *ORDER!*\n👤 {c_name}\n🏢 {final_hostel}\n📍 Room: {c_room}\n📞 {c_phone}\n📦 {order_details}\n💰 Total: ₹{total_bill}"
                     send_tele_msg(msg)
-                    
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success(f"Order Placed for {final_hostel}! Reaching in 10 mins.")
-                    time.sleep(3)
+                    st.success("Order Placed!")
+                    time.sleep(2)
                     st.rerun()
-                except: st.error("DB Update Error - Par Order Telegram pe chala gaya hai!")
-            else:
-                st.warning("Puri details bharo!")
+                except: st.error("Order sent to Telegram, DB sync delay.")
+            else: st.warning("Details bharo!")
