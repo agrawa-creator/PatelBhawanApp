@@ -26,7 +26,7 @@ if 'user_info' not in st.session_state: st.session_state.user_info = {"name": ""
 
 st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
 
-# --- 4. MATURE DARK UI ---
+# --- 4. CLEAN DARK UI ---
 st.markdown("""
     <style>
     .stApp { background-color: #0E1117; color: #FFFFFF; }
@@ -36,7 +36,7 @@ st.markdown("""
     }
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
-        padding: 12px 0; border-radius: 8px; margin-bottom: 25px;
+        padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
@@ -54,11 +54,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 5. TOP ANNOUNCEMENTS ---
+# --- 5. TOP PROMO & TAGLINE ---
 st.markdown("""
     <div class="promo-box">
         <span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span> 
-        <br><span style="color: #E0E0E0;">Bhaiyo, naya stock aa gaya hai! Discount ke liye WhatsApp join karo.</span>
+        <br><span style="color: #E0E0E0;">Bhaiyo, naya stock aa gaya hai! Exclusive deals ke liye WhatsApp join karo.</span>
         <br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a>
     </div>
 """, unsafe_allow_html=True)
@@ -85,15 +85,15 @@ with st.sidebar:
                     st.rerun()
         except: st.error("Sidebar Error")
     st.divider()
-    st.markdown("[Join WhatsApp](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
+    st.markdown("[Join WhatsApp Group](https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t)")
 
 st.markdown('<a href="https://wa.me/918864810011" target="_blank" class="whatsapp-btn">💬 Help & Support</a>', unsafe_allow_html=True)
 
 # --- 7. MAIN SHOP ---
 st.title("🛍️ Patel Bhavan Mart")
-search_query = st.text_input("🔍 Kya chahiye bhai?")
+search_query = st.text_input("🔍 Search snacks, drinks...")
 cat_options = ["All", "Snacks", "Drinks", "Biscuits", "Others"]
-selected_cat = st.segmented_control("Select Category", options=cat_options, default="All")
+selected_cat = st.segmented_control("Categories", options=cat_options, default="All")
 
 col_main, col_cart = st.columns([2, 1])
 
@@ -126,38 +126,42 @@ with col_main:
                             time.sleep(0.2)
                             st.rerun()
                     else: st.error("Out of Stock")
-    except: st.error("Slow Internet? Refresh karo.")
+    except: st.error("Database connection issue. Refresh please.")
 
-# --- 8. CART & ADDRESS (WITH HOSTEL) ---
+# --- 8. CART & CHECKOUT ---
 with col_cart:
     st.subheader("🧺 My Basket")
     if not st.session_state.cart:
-        st.info("Basket khali hai!")
+        st.info("Basket is empty!")
     else:
         total_bill = 0
         order_details = ""
         for name, info in list(st.session_state.cart.items()):
-            sub = info['price'] * info['qty']
-            total_bill += sub
+            subtotal = info['price'] * info['qty']
+            total_bill += subtotal
             order_details += f"{name} (x1), "
-            st.write(f"**{name}** - ₹{sub}")
-            if st.button("❌", key=f"del_{name}"):
+            st.write(f"**{name}** - ₹{subtotal}")
+            if st.button("❌ Remove", key=f"del_{name}"):
                 del st.session_state.cart[name]
                 st.rerun()
         
         st.divider()
         st.write(f"### Total: ₹{total_bill}")
         
-        # Address Section with Hostel
-        st.subheader("📍 Delivery Details")
-        h_name = st.selectbox("Select Hostel", ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Other"], index=0)
+        # Delivery Details
+        st.subheader("📍 Delivery Address")
+        # Hostel List
+        hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Tandon Bhavan", "Other"]
+        h_name = st.selectbox("Select Hostel", hostel_list)
+        
+        # Name/Room memory logic
         c_name = st.text_input("Name", value=st.session_state.user_info['name'])
         c_room = st.text_input("Room No.", value=st.session_state.user_info['room'])
-        c_phone = st.text_input("Phone Number", value=st.session_state.user_info['phone'])
+        c_phone = st.text_input("Mobile No.", value=st.session_state.user_info['phone'])
         
         if st.button("🚀 CONFIRM ORDER"):
             if c_name and c_room and c_phone:
-                # Save info for next time
+                # Update memory
                 st.session_state.user_info = {"name": c_name, "room": c_room, "phone": c_phone, "hostel": h_name}
                 
                 try:
@@ -165,21 +169,16 @@ with col_cart:
                         new_s = max(0, info['stock'] - 1)
                         supabase.table("inventory").update({"Stock": new_s}).eq("id", info['id']).execute()
                     
-                    # Notify Telegram with Hostel Info
+                    # Notify Manager (Telegram)
                     msg = f"🚀 *NEW ORDER!*\n\n👤 *Name:* {c_name}\n🏢 *Hostel:* {h_name}\n📍 *Room:* {c_room}\n📞 *Phone:* {c_phone}\n📦 *Items:* {order_details}\n💰 *Total:* ₹{total_bill}"
                     send_tele_msg(msg)
                     
                     st.session_state.cart = {}
                     st.balloons()
-                    st.success(f"Order Placed for {h_name}!")
-                    
-                    # WhatsApp redirect link for double confirmation
-                    wa_msg = f"Bhai mera order confirm kar do: {order_details} Total: ₹{total_bill} at {h_name} Room {c_room}"
-                    st.markdown(f'<a href="https://wa.me/918864810011?text={wa_msg}" target="_blank" style="color: #25D366; font-weight: bold;">Click here to confirm on WhatsApp</a>', unsafe_allow_html=True)
-                    
-                    time.sleep(5)
+                    st.success(f"Order confirmed for {h_name}! Delivering in 10 mins.")
+                    time.sleep(3)
                     st.rerun()
                 except:
-                    st.error("Error! But order sent to manager.")
+                    st.error("Error updating stock, but order sent!")
             else:
-                st.warning("Saari details bharo!")
+                st.warning("Please fill Name, Room, and Mobile!")
