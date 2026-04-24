@@ -36,7 +36,7 @@ st.markdown("""
     }
     .marquee-container {
         width: 100%; overflow: hidden; background: #262730;
-        padding: 10px 0; border-radius: 8px; margin-bottom: 25px;
+        padding: 12px 0; border-radius: 8px; margin-bottom: 25px;
         border-bottom: 2px solid #4682B4; display: flex;
     }
     .marquee-content { display: flex; white-space: nowrap; animation: marquee 12s linear infinite; }
@@ -45,11 +45,15 @@ st.markdown("""
     .urgency-blink { color: #FF4B4B; font-weight: bold; animation: blinker 1.2s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
     .stButton>button { border-radius: 8px; width: 100%; transition: 0.3s; font-weight: bold; }
+    
+    /* MRP Style */
+    .mrp-text { color: #888888; text-decoration: line-through; font-size: 14px; margin-right: 8px; }
+    .price-text { color: #25D366; font-size: 18px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 5. TOP ANNOUNCEMENTS ---
-st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, naya stock aa gaya hai! Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
+st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
 
 tag_txt = "🚀 FASTEST HOSTEL DELIVERY! &nbsp;&nbsp; 📦 NO MINIMUM ORDER &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
@@ -83,24 +87,29 @@ with col_main:
             with st.container(border=True):
                 st.image(item.get('image url', ''), use_container_width=True)
                 st.subheader(item.get('Name', 'Item'))
-                p, s = int(item.get('Price', 0)), int(item.get('Stock', 0))
-                st.write(f"Price: **₹{p}** | Stock: {s}")
                 
-                if s > 0:
-                    if s <= 3: st.markdown(f"<p class='urgency-blink'>⚠️ Only {s} left!</p>", unsafe_allow_html=True)
+                # Handling MRP and Price
+                mrp = item.get('MRP', 0)
+                price = int(item.get('Price', 0))
+                stock = int(item.get('Stock', 0))
+                
+                # Visual Price Display
+                st.markdown(f'<div><span class="mrp-text">MRP ₹{mrp}</span><span class="price-text">Our Price ₹{price}</span></div>', unsafe_allow_html=True)
+                st.write(f"Stock Available: {stock}")
+                
+                if stock > 0:
+                    if stock <= 3: st.markdown(f"<p class='urgency-blink'>⚠️ Only {stock} left!</p>", unsafe_allow_html=True)
                     
-                    # Quantity Selector before adding to cart
-                    add_qty = st.number_input(f"Qty:", min_value=1, max_value=s, value=1, key=f"qty_in_{item['id']}")
+                    add_qty = st.number_input(f"Qty:", min_value=1, max_value=stock, value=1, key=f"qty_in_{item['id']}")
                     
                     if st.button(f"🛒 Add to Basket", key=f"add_{item['id']}"):
                         if item['Name'] in st.session_state.cart:
-                            # Check if total doesn't exceed stock
-                            if st.session_state.cart[item['Name']]['qty'] + add_qty <= s:
+                            if st.session_state.cart[item['Name']]['qty'] + add_qty <= stock:
                                 st.session_state.cart[item['Name']]['qty'] += add_qty
                             else:
-                                st.session_state.cart[item['Name']]['qty'] = s
+                                st.session_state.cart[item['Name']]['qty'] = stock
                         else:
-                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': add_qty, 'price': p, 'stock': s}
+                            st.session_state.cart[item['Name']] = {'id': item['id'], 'qty': add_qty, 'price': price, 'stock': stock}
                         st.toast(f"✅ Added {add_qty} {item['Name']}")
                         time.sleep(0.1)
                         st.rerun()
@@ -153,5 +162,5 @@ with col_cart:
                     st.success("Order Placed Successfully!")
                     time.sleep(2)
                     st.rerun()
-                except: st.error("Sync Error, but manager notified!")
+                except: st.error("Database sync delay, but manager notified!")
             else: st.warning("Details bharo bhai!")
