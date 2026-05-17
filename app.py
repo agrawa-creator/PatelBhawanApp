@@ -24,7 +24,7 @@ if 'cart' not in st.session_state: st.session_state.cart = {}
 if 'user_info' not in st.session_state: 
     st.session_state.user_info = {"name": "", "room": "", "phone": "", "hostel": "Patel Bhavan"}
 
-st.set_page_config(page_title="Patel Bhavan Mart", layout="wide", page_icon="🛒")
+st.set_page_config(page_title="Pandit Lekhram Mart", layout="wide", page_icon="🛒")
 
 # --- 4. CLEAN DARK UI ---
 st.markdown("""
@@ -51,7 +51,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 5. TOP ANNOUNCEMENTS ---
-st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
+st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PANDIT LEKHRAM MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
 
 tag_txt = "🚀 PANDIT LEKHRAM MART! &nbsp;&nbsp; 📦 PICKUP FROM ROOM 114 &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
