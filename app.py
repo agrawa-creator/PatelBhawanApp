@@ -53,7 +53,7 @@ st.markdown("""
 # --- 5. TOP ANNOUNCEMENTS ---
 st.markdown('<div class="promo-box"><span style="color: #3A8DFF; font-weight: bold; font-size: 18px;">📢 PATEL MART UPDATES:</span><br><span style="color: #E0E0E0;">Bhaiyo, Exclusive deals ke liye WhatsApp join karo.</span><br><a href="https://chat.whatsapp.com/E5XZVD453tZ3nwUyqpMVNy?mode=gi_t" target="_blank" style="color: #25D366; text-decoration: underline; font-weight: bold;">Join Community 🔗</a></div>', unsafe_allow_html=True)
 
-tag_txt = "🚀 PATEL BHAVAN DELIVERY ONLY! &nbsp;&nbsp; 📦 OTHERS PICKUP FROM ROOM 112 &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
+tag_txt = "🚀 PANDIT LEKHRAM MART! &nbsp;&nbsp; 📦 PICKUP FROM ROOM 114 &nbsp;&nbsp; 🍕 LATE NIGHT SNACKS &nbsp;&nbsp;&nbsp;&nbsp;"
 st.markdown(f'<div class="marquee-container"><div class="marquee-content"><div class="marquee-text">{tag_txt * 4}</div></div></div>', unsafe_allow_html=True)
 
 # --- 6. DATA FETCH ---
@@ -65,7 +65,7 @@ except:
     st.error("Database connection issue. Refresh please.")
 
 # --- 7. MAIN SHOP LOGIC ---
-st.title("🛍️ Patel Bhavan Mart")
+st.title("🛍️ Pandit Lekhram Mart")
 search_query = st.text_input("🔍 Search snacks, drinks...")
 cat_options = ["All", "Snacks", "Drinks", "Biscuits", "Others"]
 selected_cat = st.segmented_control("Categories", options=cat_options, default="All")
@@ -125,7 +125,7 @@ with col_cart:
         st.write(f"### Total Bill: ₹{total_bill}")
         
         # Address Details
-        hostel_list = ["Patel Bhavan", "Tilak Bhavan", "Malviya Bhavan", "Other"]
+        hostel_list = ["Patel Bhavan",]
         h_choice = st.selectbox("Select Your Hostel", hostel_list)
         
         # PICKUP LOGIC
