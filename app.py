@@ -9,7 +9,7 @@ KEY = "sb_publishable_RQuXJ1BP3wpLnWmp3WLMvQ_vT5mxYq4"
 supabase = create_client(URL, KEY)
 
 # --- 2. TELEGRAM CONFIG ---
-TELE_TOKEN = "7954541566:AAFdSIYkxCp1KYCZN3CFhj5Fd8TU89X6whs"
+TELE_TOKEN = "8880275866: AAHaZ6Zd1S-X5M0oxmAni6mxHC8vgTIntPA"
 CHAT_IDS = ["7261699388", "7609324930"]
 
 def send_tele_msg(text):
